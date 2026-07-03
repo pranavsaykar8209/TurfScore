@@ -1,0 +1,105 @@
+{
+  "navbar": {
+    "logo": "TurfScore",
+    "links": [
+      {
+        "label": "About",
+        "href": "#about"
+      },
+      {
+        "label": "How It Works",
+        "href": "#how-it-works"
+      },
+      {
+        "label": "Contact",
+        "href": "#contact"
+      }
+    ]
+  },
+  "hero": {
+    "badge": "LIVE · BUILT FOR TURF CRICKET",
+    "title": "TurfScore",
+    "highlightText": "Fast. Live. Accurate.",
+    "description": "Real-time cricket scoring for turf matches. Log a ball in under 2 seconds, sync to every device instantly, and get auto-calculated overs, run rates, and strike rates — no spreadsheets required.",
+    "stats": [
+      {
+        "title": "2s",
+        "subtitle": "PER BALL"
+      },
+      {
+        "title": "Live",
+        "subtitle": "SYNC"
+      },
+      {
+        "title": "Auto",
+        "subtitle": "CALC"
+      }
+    ],
+    "matchConsole": {
+      "title": "MATCH CONSOLE",
+      "primaryButton": "Create Session",
+      "joinCodePlaceholder": "Enter 6-character code",
+      "joinButton": "Join"
+    }
+  },
+  "whyTurfScore": {
+    "label": "WHY TURFSCORE",
+    "title": "Built for the speed of turf cricket.",
+    "description": "Everything you need to run a proper match — without spreadsheets, group chats or arguments about the score.",
+    "cards": [
+      {
+        "id": "01",
+        "title": "Ultra Fast Scoring",
+        "description": "Log every ball in under 2 seconds with one-tap controls built for the sideline scorer."
+      },
+      {
+        "id": "02",
+        "title": "Real-time Sync",
+        "description": "Every run, wicket and boundary reflects instantly on every device watching the match."
+      },
+      {
+        "id": "03",
+        "title": "Auto Calculations",
+        "description": "Runs, overs, strike rates and run rates update automatically so you can focus on the game."
+      },
+      {
+        "id": "04",
+        "title": "Match Analytics",
+        "description": "Get post-match summaries with batter, bowler and partnership stats in one place."
+      }
+    ]
+  },
+  "howItWorks": {
+    "label": "HOW IT WORKS",
+    "title": "Run a full match in simple steps.",
+    "description": "Start a new session, configure your teams, and begin tracking the score instantly on any device.",
+    "cards": [
+      {
+        "id": "01",
+        "title": "Create Session",
+        "description": "Start a fresh match room and generate a unique code for players and scorers."
+      },
+      {
+        "id": "02",
+        "title": "Add Teams & Players",
+        "description": "Set up both teams, add player names and reuse saved squads for future matches."
+      },
+      {
+        "id": "03",
+        "title": "Set Match Details",
+        "description": "Choose toss winner, batting order, overs and playing XI before starting."
+      },
+      {
+        "id": "04",
+        "title": "Start Live Scoring",
+        "description": "Score every ball live and instantly share results, stats and scorecards."
+      }
+    ]
+  },
+  "contact": {
+    "badge": "TS",
+    "title": "Ready to score smarter?",
+    "description": "Have questions or want to get in touch? We’d love to hear from you.",
+    "buttonText": "Contact Us"
+  }
+}
