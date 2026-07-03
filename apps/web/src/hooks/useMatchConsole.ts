@@ -1,11 +1,12 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export const useMatchConsole = () => {
   const [joinCode, setJoinCode] = useState('');
+  const navigate = useNavigate();
 
   const handleCreateSession = () => {
-    console.log('Navigate to create session');
-    // Implement navigation to /create-session
+    navigate('/create-session');
   };
 
   const handleJoinSession = (e: React.FormEvent) => {

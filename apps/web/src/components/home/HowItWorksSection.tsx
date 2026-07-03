@@ -17,7 +17,7 @@ export const HowItWorksSection = ({ data }: HowItWorksSectionProps) => {
         
         {/* Header */}
         <div className="max-w-xl mx-auto text-center mb-16">
-          <h3 className="text-xs md:text-sm font-bold tracking-widest text-brand-green uppercase mb-4">
+          <h3 className="text-xs md:text-sm font-bold tracking-widest text-green-700 dark:text-brand-green uppercase mb-4 transition-colors">
             {data.label}
           </h3>
           <h2 className="text-5xl md:text-6xl font-extrabold text-brand-dark dark:text-white tracking-tight leading-[1.1] mb-6 transition-colors">

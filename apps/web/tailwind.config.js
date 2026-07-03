@@ -12,10 +12,13 @@ export default {
       },
       colors: {
         brand: {
-          green: '#97d700',
-          dark: '#0f172a',
-          light: '#f8fafc',
-          card: '#ffffff'
+          green: '#B8FF1A',
+          dark: '#0B1220',
+          light: '#F8FAFC',
+          card: {
+            dark: '#161F33', // Slightly lighter than background for cards
+            light: '#ffffff'
+          }
         }
       }
     },

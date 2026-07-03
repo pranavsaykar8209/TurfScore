@@ -21,22 +21,16 @@ export const MatchConsoleCard = ({ data }: MatchConsoleCardProps) => {
       <div className="p-6 bg-white dark:bg-slate-800 transition-colors flex flex-col gap-5">
         
         {/* Score Simulation */}
-        <div className="bg-[#0B1121] dark:bg-slate-900 rounded-2xl p-6 flex items-center justify-between relative overflow-hidden shadow-inner">
-          {/* Faint vertical lines background for the score box */}
-          <div className="absolute inset-0 flex justify-between px-4 opacity-10 pointer-events-none">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="w-[1px] h-full bg-slate-700"></div>
-            ))}
-          </div>
+        <div className="bg-slate-100 dark:bg-slate-900 rounded-2xl p-6 flex items-center justify-between relative overflow-hidden shadow-inner transition-colors">
           
           <div className="text-left relative z-10">
-            <div className="text-[10px] font-bold text-brand-green uppercase tracking-widest mb-1.5">Turf XI</div>
-            <div className="text-4xl font-black text-white tracking-tighter leading-none mb-1">124<span className="text-slate-400 font-medium">/4</span></div>
-            <div className="text-[10px] font-medium text-slate-400 font-mono tracking-wider">15.2 OV • RR 8.15</div>
+            <div className="text-[10px] font-bold text-green-700 dark:text-brand-green uppercase tracking-widest mb-1.5 transition-colors">Turf XI</div>
+            <div className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter leading-none mb-1 transition-colors">124<span className="text-slate-500 dark:text-slate-400 font-medium transition-colors">/4</span></div>
+            <div className="text-[10px] font-medium text-slate-500 dark:text-slate-400 font-mono tracking-wider transition-colors">15.2 OV • RR 8.15</div>
           </div>
           <div className="text-right relative z-10 flex flex-col items-end justify-between h-full">
-            <div className="text-[10px] text-slate-500 font-bold mb-4">VS</div>
-            <div className="text-xl font-bold text-white tracking-wide">Rivals</div>
+            <div className="text-[10px] text-slate-500 font-bold mb-4 transition-colors">VS</div>
+            <div className="text-xl font-bold text-slate-900 dark:text-white tracking-wide transition-colors">Rivals</div>
           </div>
         </div>
 
