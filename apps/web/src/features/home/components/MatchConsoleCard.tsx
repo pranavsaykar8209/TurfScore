@@ -1,5 +1,5 @@
-import { useMatchConsole } from '../../hooks/useMatchConsole';
-import { MatchConsoleCardProps } from '../../types';
+import { useMatchConsole } from '../../../hooks/useMatchConsole';
+import { MatchConsoleCardProps } from '../../../types';
 
 export const MatchConsoleCard = ({ data }: MatchConsoleCardProps) => {
   const { joinCode, setJoinCode, handleCreateSession, handleJoinSession } = useMatchConsole();

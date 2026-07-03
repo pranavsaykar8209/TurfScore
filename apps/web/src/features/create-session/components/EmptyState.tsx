@@ -1,12 +1,7 @@
 import React from 'react';
 import { Users } from 'lucide-react';
-import { cn } from '../../utils/cn';
-
-interface EmptyStateProps {
-  title?: string;
-  description?: string;
-  className?: string;
-}
+import { cn } from '../../../utils/cn';
+import { EmptyStateProps } from '../types';
 
 export const EmptyState: React.FC<EmptyStateProps> = ({ 
   title = "No players added", 

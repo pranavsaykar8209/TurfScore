@@ -1,16 +1,12 @@
 import React from 'react';
 import { useFormContext } from 'react-hook-form';
 import { motion } from 'framer-motion';
-import { Input } from '../ui/Input';
-import { Button } from '../ui/Button';
-import { Card } from '../ui/Card';
-import { CopyButton } from '../ui/CopyButton';
+import { Input } from '../../../components/ui/Input';
+import { Button } from '../../../components/ui/Button';
+import { Card } from '../../../components/ui/Card';
+import { CopyButton } from '../../../components/ui/CopyButton';
 import { ArrowRight } from 'lucide-react';
-
-interface SessionSetupStepProps {
-  onNext: () => void;
-  sessionCode: string;
-}
+import { SessionSetupStepProps } from '../types';
 
 export const SessionSetupStep: React.FC<SessionSetupStepProps> = ({ onNext, sessionCode }) => {
   const { register, formState: { errors }, trigger } = useFormContext();

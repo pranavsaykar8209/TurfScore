@@ -1,5 +1,5 @@
 import { MatchConsoleCard } from './MatchConsoleCard';
-import { HeroSectionProps } from '../../types';
+import { HeroSectionProps } from '../../../types';
 import { Zap, Activity, Calculator } from 'lucide-react';
 
 export const HeroSection = ({ data }: HeroSectionProps) => {

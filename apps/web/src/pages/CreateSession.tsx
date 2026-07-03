@@ -2,14 +2,10 @@ import { useState, useEffect } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { ArrowLeft } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 
-import { Stepper } from '../components/CreateSession/Stepper';
-import { SessionSetupStep } from '../components/CreateSession/SessionSetupStep';
-import { AddPlayersStep } from '../components/CreateSession/AddPlayersStep';
-import { ReviewStep } from '../components/CreateSession/ReviewStep';
+import { Stepper, SessionSetupStep, AddPlayersStep, ReviewStep } from '../features/create-session/components';
 import { Navbar } from '../components/shared';
 import homeContent from '../data/home.json';
 

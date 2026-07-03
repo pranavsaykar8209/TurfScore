@@ -2,15 +2,11 @@ import React, { useState } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 import { motion } from 'framer-motion';
 import { Plus, ArrowLeft, ArrowRight } from 'lucide-react';
-import { Input } from '../ui/Input';
-import { Button } from '../ui/Button';
-import { Card } from '../ui/Card';
+import { Input } from '../../../components/ui/Input';
+import { Button } from '../../../components/ui/Button';
+import { Card } from '../../../components/ui/Card';
 import { PlayerList } from './PlayerList';
-
-interface AddPlayersStepProps {
-  onNext: () => void;
-  onBack: () => void;
-}
+import { AddPlayersStepProps } from '../types';
 
 export const AddPlayersStep: React.FC<AddPlayersStepProps> = ({ onNext, onBack }) => {
   const { setValue, trigger, formState: { errors } } = useFormContext();
@@ -77,7 +73,12 @@ export const AddPlayersStep: React.FC<AddPlayersStepProps> = ({ onNext, onBack }
               placeholder="e.g. Virat Kohli"
               value={playerName}
               onChange={(e) => setPlayerName(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleAddPlayer()}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleAddPlayer();
+                }
+              }}
             />
           </div>
           <div className="flex-1 w-full flex flex-col gap-1.5">

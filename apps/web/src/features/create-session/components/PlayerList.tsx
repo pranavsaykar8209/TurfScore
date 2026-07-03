@@ -1,21 +1,8 @@
 import React from 'react';
-import { Card } from '../ui/Card';
+import { Card } from '../../../components/ui/Card';
 import { PlayerCard } from './PlayerCard';
 import { EmptyState } from './EmptyState';
-
-interface Player {
-  id: string;
-  name: string;
-  team: 'A' | 'B';
-}
-
-interface PlayerListProps {
-  teamId: 'A' | 'B';
-  teamName: string;
-  players: Player[];
-  onEditPlayer: (id: string) => void;
-  onDeletePlayer: (id: string) => void;
-}
+import { PlayerListProps } from '../types';
 
 export const PlayerList: React.FC<PlayerListProps> = ({ teamId, teamName, players, onEditPlayer, onDeletePlayer }) => {
   const teamPlayers = players.filter(p => p.team === teamId);

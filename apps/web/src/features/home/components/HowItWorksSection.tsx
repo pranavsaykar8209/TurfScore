@@ -1,4 +1,4 @@
-import { HowItWorksSectionProps } from '../../types';
+import { HowItWorksSectionProps } from '../../../types';
 import { PlusCircle, Users, Settings2, PlayCircle } from 'lucide-react';
 
 export const HowItWorksSection = ({ data }: HowItWorksSectionProps) => {

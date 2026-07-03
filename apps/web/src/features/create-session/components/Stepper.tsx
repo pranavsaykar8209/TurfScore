@@ -1,11 +1,7 @@
 import React from 'react';
-import { cn } from '../../utils/cn';
+import { cn } from '../../../utils/cn';
 import { ClipboardList, Users, CheckSquare } from 'lucide-react';
-
-interface StepperProps {
-  currentStep: number;
-  steps: { id: number; title: string; subtitle?: string }[];
-}
+import { StepperProps } from '../types';
 
 export const Stepper: React.FC<StepperProps> = ({ currentStep, steps }) => {
   return (

@@ -1,6 +1,6 @@
 import homeContent from '../data/home.json';
 import { Navbar, FooterCTA } from '../components/shared';
-import { HeroSection, FeatureSection, HowItWorksSection } from '../components/home';
+import { HeroSection, FeatureSection, HowItWorksSection } from '../features/home/components';
 
 export default function Home() {
   return (

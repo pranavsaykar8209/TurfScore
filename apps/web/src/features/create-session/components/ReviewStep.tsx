@@ -2,14 +2,9 @@ import React from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 import { motion } from 'framer-motion';
 import { CalendarDays, Users, ArrowLeft, CheckCircle2 } from 'lucide-react';
-import { Card } from '../ui/Card';
-import { Button } from '../ui/Button';
-
-interface ReviewStepProps {
-  onBack: () => void;
-  onSubmit: () => void;
-  sessionCode: string;
-}
+import { Card } from '../../../components/ui/Card';
+import { Button } from '../../../components/ui/Button';
+import { ReviewStepProps } from '../types';
 
 export const ReviewStep: React.FC<ReviewStepProps> = ({ onBack, onSubmit, sessionCode }) => {
   const { formState: { isSubmitting } } = useFormContext();

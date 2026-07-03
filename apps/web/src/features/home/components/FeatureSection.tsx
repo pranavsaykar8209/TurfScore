@@ -1,4 +1,4 @@
-import { FeatureSectionProps } from '../../types';
+import { FeatureSectionProps } from '../../../types';
 import { Timer, Smartphone, Calculator, BarChart3 } from 'lucide-react';
 
 export const FeatureSection = ({ data }: FeatureSectionProps) => {

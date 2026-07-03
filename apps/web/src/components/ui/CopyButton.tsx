@@ -1,12 +1,7 @@
 import React, { useState } from 'react';
 import { Copy, Check } from 'lucide-react';
 import { cn } from '../../utils/cn';
-
-interface CopyButtonProps {
-  value: string;
-  label?: string;
-  className?: string;
-}
+import { CopyButtonProps } from './types';
 
 export const CopyButton: React.FC<CopyButtonProps> = ({ value, label, className }) => {
   const [copied, setCopied] = useState(false);

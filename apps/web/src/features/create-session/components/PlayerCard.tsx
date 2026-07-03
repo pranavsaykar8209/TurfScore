@@ -1,13 +1,7 @@
 import React from 'react';
 import { User, Edit2, Trash2 } from 'lucide-react';
-import { cn } from '../../utils/cn';
-
-interface PlayerCardProps {
-  id: string;
-  name: string;
-  onEdit?: (id: string) => void;
-  onDelete?: (id: string) => void;
-}
+import { cn } from '../../../utils/cn';
+import { PlayerCardProps } from '../types';
 
 export const PlayerCard: React.FC<PlayerCardProps> = ({ id, name, onEdit, onDelete }) => {
   return (
