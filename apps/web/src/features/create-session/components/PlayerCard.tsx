@@ -14,7 +14,7 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({ id, name, onEdit, onDele
         <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center">
           <User className="w-4 h-4 text-slate-500 dark:text-slate-400" />
         </div>
-        <span className="text-sm font-medium text-slate-800 dark:text-slate-200">{name}</span>
+        <span className="text-sm font-medium text-slate-800 dark:text-slate-200 capitalize">{name}</span>
       </div>
       
       <div className="flex items-center gap-1">

@@ -62,7 +62,7 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({ onBack, onSubmit, sessio
                 teamAPlayers.map((player: any) => (
                   <div key={player.id} className="flex items-center gap-2">
                     <div className="w-1.5 h-1.5 rounded-full bg-brand-green" />
-                    <span className="text-sm text-slate-700 dark:text-slate-300">{player.name}</span>
+                    <span className="text-sm text-slate-700 dark:text-slate-300 capitalize">{player.name}</span>
                   </div>
                 ))
               )}
@@ -82,7 +82,7 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({ onBack, onSubmit, sessio
                 teamBPlayers.map((player: any) => (
                   <div key={player.id} className="flex items-center gap-2">
                     <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                    <span className="text-sm text-slate-700 dark:text-slate-300">{player.name}</span>
+                    <span className="text-sm text-slate-700 dark:text-slate-300 capitalize">{player.name}</span>
                   </div>
                 ))
               )}
