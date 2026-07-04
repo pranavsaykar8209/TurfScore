@@ -5,7 +5,10 @@ interface PlayersActiveCardProps {
 }
 
 export default function PlayersActiveCard({ matchState }: PlayersActiveCardProps) {
-  const { striker, nonStriker, currentBowler } = matchState;
+  const { striker, nonStriker, batterStats } = matchState;
+
+  const strikerStats = striker?.id ? batterStats[striker.id] : { runs: 0, balls: 0 };
+  const nonStrikerStats = nonStriker?.id ? batterStats[nonStriker.id] : { runs: 0, balls: 0 };
 
   return (
     <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-sm border border-slate-200 dark:border-slate-800 flex flex-col gap-6 h-full">
@@ -29,8 +32,8 @@ export default function PlayersActiveCard({ matchState }: PlayersActiveCardProps
               </div>
             </div>
             <div className="text-right">
-              <span className="font-bold text-slate-900 dark:text-white">0</span>
-              <span className="text-xs text-slate-500 ml-1">(0)</span>
+              <span className="font-bold text-slate-900 dark:text-white">{strikerStats?.runs || 0}</span>
+              <span className="text-xs text-slate-500 ml-1">({strikerStats?.balls || 0})</span>
             </div>
           </div>
 
@@ -43,8 +46,8 @@ export default function PlayersActiveCard({ matchState }: PlayersActiveCardProps
               </span>
             </div>
             <div className="text-right">
-              <span className="font-bold text-slate-700 dark:text-slate-300">0</span>
-              <span className="text-xs text-slate-500 ml-1">(0)</span>
+              <span className="font-bold text-slate-700 dark:text-slate-300">{nonStrikerStats?.runs || 0}</span>
+              <span className="text-xs text-slate-500 ml-1">({nonStrikerStats?.balls || 0})</span>
             </div>
           </div>
         </div>

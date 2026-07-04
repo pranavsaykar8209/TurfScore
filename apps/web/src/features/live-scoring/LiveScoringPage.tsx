@@ -1,4 +1,4 @@
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { useMatchState } from './hooks/useMatchState';
 import {
 
@@ -12,7 +12,6 @@ import { Navbar } from '@/components/shared';
 import homeContent from '@/data/home.json';
 
 export default function LiveScoringPage() {
-  const navigate = useNavigate();
   const location = useLocation();
   const routeState = location.state;
 
@@ -31,18 +30,14 @@ export default function LiveScoringPage() {
   const {
     state: matchState,
     addDelivery,
-    addWicket,
     undo,
     changeStrike,
-    endOver,
     canUndo,
   } = useMatchState({
     striker: matchSetup.striker,
     nonStriker: matchSetup.nonStriker,
     currentBowler: matchSetup.bowler,
   });
-
-  const isOverComplete = matchState.currentBall >= 6;
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col font-sans pb-12 pt-32">

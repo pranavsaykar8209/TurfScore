@@ -54,8 +54,10 @@ export default function ScoreboardCard({ battingTeamName, bowlingTeamName, match
                 / {totalWickets}
               </span>
             </div>
-            <div className="mt-2 text-sm md:text-base font-medium text-slate-500 uppercase tracking-wider">
-              <span className="text-slate-900 dark:text-white font-bold">{oversDecimal}</span> Overs
+            <div className="mt-2 text-sm md:text-base font-medium text-slate-500 uppercase tracking-wider flex items-center gap-3">
+              <span><span className="text-slate-900 dark:text-white font-bold">{oversDecimal}</span> Overs</span>
+              <span className="text-slate-300 dark:text-slate-700">•</span>
+              <span>Extras: <span className="text-slate-900 dark:text-white font-bold">{matchState.extraRuns || 0}</span></span>
             </div>
           </div>
 

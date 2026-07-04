@@ -5,7 +5,12 @@ interface CurrentOverTrackerProps {
 }
 
 export default function CurrentOverTracker({ matchState }: CurrentOverTrackerProps) {
-  const { currentOverDeliveries, currentBall } = matchState;
+  const { currentOverDeliveries, currentBall, currentBowler, bowlerStats } = matchState;
+
+  const stats = currentBowler?.id ? bowlerStats[currentBowler.id] : { runs: 0, balls: 0, wickets: 0 };
+  const oversBowled = Math.floor((stats?.balls || 0) / 6);
+  const ballsBowled = (stats?.balls || 0) % 6;
+  const oversDecimal = `${oversBowled}.${ballsBowled}`;
 
   // Render a placeholder ball if less than 6 legal balls thrown
   const placeholders = Array.from({ length: Math.max(0, 6 - currentBall) });
@@ -19,21 +24,21 @@ export default function CurrentOverTracker({ matchState }: CurrentOverTrackerPro
         <div className="flex items-center gap-3 mb-2">
           <span className="text-red-400">🥎</span>
           <span className="font-semibold text-slate-900 dark:text-white capitalize text-lg">
-            {matchState.currentBowler?.name || 'Select Bowler'}
+            {currentBowler?.name || 'Select Bowler'}
           </span>
         </div>
         <div className="flex gap-4 text-sm font-medium mt-auto">
           <div className="flex flex-col">
             <span className="text-slate-500 text-[10px] uppercase">Overs</span>
-            <span className="text-slate-900 dark:text-white leading-none">0.0</span>
+            <span className="text-slate-900 dark:text-white leading-none">{oversDecimal}</span>
           </div>
           <div className="flex flex-col">
             <span className="text-slate-500 text-[10px] uppercase">Runs</span>
-            <span className="text-slate-900 dark:text-white leading-none">0</span>
+            <span className="text-slate-900 dark:text-white leading-none">{stats?.runs || 0}</span>
           </div>
           <div className="flex flex-col">
             <span className="text-slate-500 text-[10px] uppercase">Wck</span>
-            <span className="text-brand-green leading-none">0</span>
+            <span className="text-brand-green leading-none">{stats?.wickets || 0}</span>
           </div>
         </div>
       </div>
@@ -52,7 +57,7 @@ export default function CurrentOverTracker({ matchState }: CurrentOverTrackerPro
         </div>
 
         <div className="flex flex-wrap items-center gap-2 mt-auto">
-          {currentOverDeliveries.map((delivery, index) => {
+          {currentOverDeliveries.map((delivery) => {
             let bgClass = "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300";
             let display = delivery.runs.toString();
 

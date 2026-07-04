@@ -19,9 +19,21 @@ export interface Over {
   isComplete: boolean;
 }
 
+export interface BatterStats {
+  runs: number;
+  balls: number;
+}
+
+export interface BowlerStats {
+  runs: number;
+  balls: number;
+  wickets: number;
+}
+
 export interface MatchState {
   // Score
   totalRuns: number;
+  extraRuns: number;
   totalWickets: number;
   currentOver: number;
   currentBall: number; // 1 to 6
@@ -30,6 +42,10 @@ export interface MatchState {
   striker: PlayerSelection | null;
   nonStriker: PlayerSelection | null;
   currentBowler: PlayerSelection | null;
+  
+  // Stats
+  batterStats: Record<string, BatterStats>;
+  bowlerStats: Record<string, BowlerStats>;
   
   // Target (for 2nd innings)
   target?: number;

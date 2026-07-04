@@ -1,10 +1,10 @@
 import { useState, useCallback } from 'react';
 import { MatchState, Delivery, DeliveryType } from '../types';
-import { PlayerSelection } from '../../match-setup/types';
 
 export function useMatchState(initialState: Partial<MatchState>) {
   const [state, setState] = useState<MatchState>({
     totalRuns: 0,
+    extraRuns: 0,
     totalWickets: 0,
     currentOver: 0,
     currentBall: 0,
@@ -13,6 +13,8 @@ export function useMatchState(initialState: Partial<MatchState>) {
     currentBowler: initialState.currentBowler || null,
     overs: [],
     currentOverDeliveries: [],
+    batterStats: {},
+    bowlerStats: {},
     ...initialState,
   });
 
@@ -33,14 +35,106 @@ export function useMatchState(initialState: Partial<MatchState>) {
 
     setState((prev) => {
       const { runs, type = 'NORMAL', isBoundary = false, isWicket = false, wicketType } = params;
-      const isLegal = type !== 'WIDE' && type !== 'NO_BALL';
       const actualIsWicket = isWicket || type === 'WICKET';
       
-      const newTotalRuns = prev.totalRuns + runs + (!isLegal ? 1 : 0); // Wides/NB usually give 1 penalty run
-      const newTotalWickets = prev.totalWickets + (actualIsWicket ? 1 : 0);
+      let {
+        totalRuns,
+        extraRuns,
+        totalWickets,
+        currentBall,
+        currentOver,
+        overs,
+        currentOverDeliveries,
+        striker,
+        nonStriker,
+        batterStats,
+        bowlerStats,
+      } = prev;
+
+      const strikerId = striker?.id || '';
+      const bowlerId = prev.currentBowler?.id || '';
       
-      let newBall = isLegal ? prev.currentBall + 1 : prev.currentBall;
-      
+      const newBatterStats = { ...batterStats };
+      const newBowlerStats = { ...bowlerStats };
+
+      if (strikerId && !newBatterStats[strikerId]) {
+        newBatterStats[strikerId] = { runs: 0, balls: 0 };
+      }
+      if (bowlerId && !newBowlerStats[bowlerId]) {
+        newBowlerStats[bowlerId] = { runs: 0, balls: 0, wickets: 0 };
+      }
+
+      const currentBatterStat = strikerId ? { ...newBatterStats[strikerId] } : { runs: 0, balls: 0 };
+      const currentBowlerStat = bowlerId ? { ...newBowlerStats[bowlerId] } : { runs: 0, balls: 0, wickets: 0 };
+
+      let runsToAddTeam = 0;
+      let runsToAddExtra = 0;
+      let runsToAddBatter = 0;
+      let ballsToAddBatter = 0;
+      let runsToAddBowler = 0;
+      let ballsToAddBowler = 0;
+      let ballsToAddOver = 0;
+      let wicketsToAdd = 0;
+      let changeStrike = false;
+
+      if (actualIsWicket) {
+        wicketsToAdd = 1;
+        ballsToAddBatter = 1;
+        ballsToAddBowler = 1;
+        ballsToAddOver = 1;
+        runsToAddTeam = runs;
+        runsToAddBatter = runs;
+        runsToAddBowler = runs;
+        if (runs % 2 !== 0) changeStrike = true; // In case batters crossed on a run-out
+      } else if (type === 'WIDE') {
+        runsToAddTeam = 1 + runs;
+        runsToAddExtra = 1 + runs;
+        runsToAddBatter = 0;
+        ballsToAddBatter = 0;
+        runsToAddBowler = 1 + runs;
+        ballsToAddBowler = 0;
+        ballsToAddOver = 0;
+      } else if (type === 'NO_BALL') {
+        runsToAddTeam = 1 + runs;
+        runsToAddExtra = 1;
+        runsToAddBatter = runs;
+        ballsToAddBatter = 1;
+        runsToAddBowler = 1 + runs;
+        ballsToAddBowler = 0;
+        ballsToAddOver = 0;
+      } else if (type === 'BYE' || type === 'LEG_BYE') {
+        runsToAddTeam = runs;
+        runsToAddExtra = runs;
+        runsToAddBatter = 0;
+        ballsToAddBatter = 1;
+        runsToAddBowler = 0;
+        ballsToAddBowler = 1;
+        ballsToAddOver = 1;
+        if (runs % 2 !== 0) changeStrike = true;
+      } else {
+        runsToAddTeam = runs;
+        runsToAddBatter = runs;
+        ballsToAddBatter = 1;
+        runsToAddBowler = runs;
+        ballsToAddBowler = 1;
+        ballsToAddOver = 1;
+        if (runs % 2 !== 0) changeStrike = true;
+      }
+
+      currentBatterStat.runs += runsToAddBatter;
+      currentBatterStat.balls += ballsToAddBatter;
+      currentBowlerStat.runs += runsToAddBowler;
+      currentBowlerStat.balls += ballsToAddBowler;
+      if (actualIsWicket) currentBowlerStat.wickets += wicketsToAdd;
+
+      if (strikerId) newBatterStats[strikerId] = currentBatterStat;
+      if (bowlerId) newBowlerStats[bowlerId] = currentBowlerStat;
+
+      totalRuns += runsToAddTeam;
+      extraRuns = (extraRuns || 0) + runsToAddExtra;
+      totalWickets += wicketsToAdd;
+      currentBall += ballsToAddOver;
+
       const delivery: Delivery = {
         id: Date.now().toString(),
         runs,
@@ -48,44 +142,43 @@ export function useMatchState(initialState: Partial<MatchState>) {
         isBoundary,
         isWicket: actualIsWicket,
         wicketType,
-        bowlerId: prev.currentBowler?.id || '',
-        batterId: prev.striker?.id || '',
+        bowlerId,
+        batterId: strikerId,
       };
 
-      let newOverDeliveries = [...prev.currentOverDeliveries, delivery];
-      let newOvers = prev.overs;
-      let newCurrentOver = prev.currentOver;
+      currentOverDeliveries = [...currentOverDeliveries, delivery];
 
-      // Auto-change strike on odd runs if it's a legal ball
-      let newStriker = prev.striker;
-      let newNonStriker = prev.nonStriker;
-      
-      if (runs % 2 !== 0 && !actualIsWicket) {
-        newStriker = prev.nonStriker;
-        newNonStriker = prev.striker;
+      if (changeStrike) {
+        const temp = striker;
+        striker = nonStriker;
+        nonStriker = temp;
       }
 
-      if (newBall >= 6) {
-        newOvers = [...prev.overs, { overNumber: prev.currentOver + 1, deliveries: newOverDeliveries, isComplete: true }];
-        newCurrentOver = prev.currentOver + 1;
-        newBall = 0;
-        newOverDeliveries = [];
+      if (currentBall >= 6) {
+        overs = [...overs, { overNumber: currentOver + 1, deliveries: currentOverDeliveries, isComplete: true }];
+        currentOver = currentOver + 1;
+        currentBall = 0;
+        currentOverDeliveries = [];
+        
         // Swap strike at end of over
-        const temp = newStriker;
-        newStriker = newNonStriker;
-        newNonStriker = temp;
+        const temp = striker;
+        striker = nonStriker;
+        nonStriker = temp;
       }
 
       return {
         ...prev,
-        totalRuns: newTotalRuns,
-        totalWickets: newTotalWickets,
-        currentBall: newBall,
-        currentOver: newCurrentOver,
-        overs: newOvers,
-        currentOverDeliveries: newOverDeliveries,
-        striker: newStriker,
-        nonStriker: newNonStriker,
+        totalRuns,
+        extraRuns,
+        totalWickets,
+        currentBall,
+        currentOver,
+        overs,
+        currentOverDeliveries,
+        striker,
+        nonStriker,
+        batterStats: newBatterStats,
+        bowlerStats: newBowlerStats,
       };
     });
   }, [saveHistory]);
@@ -97,7 +190,6 @@ export function useMatchState(initialState: Partial<MatchState>) {
   const endOver = useCallback(() => {
     saveHistory();
     setState((prev) => {
-      // Swap strike at end of over
       return {
         ...prev,
         overs: [...prev.overs, { overNumber: prev.currentOver + 1, deliveries: prev.currentOverDeliveries, isComplete: true }],
