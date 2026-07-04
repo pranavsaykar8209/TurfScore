@@ -30,6 +30,10 @@ export default function ScoringKeypad({
       setIsWicket(false);
       setWicketType(null);
     }
+    if ((r === 4 || r === 6) && isWicket && wicketType === 'RUN_OUT') {
+      setIsWicket(false);
+      setWicketType(null);
+    }
   };
 
   const handleExtra = (type: DeliveryType) => {
@@ -77,7 +81,14 @@ export default function ScoringKeypad({
 
   const getWicketClass = (type: string) => {
     const isSelected = isWicket && wicketType === type;
-    const isDisabled = type === 'BOWLED' && (isFreeHit || extraType === 'NO_BALL' || runs > 0);
+    
+    let isDisabled = false;
+    if (type === 'BOWLED') {
+      isDisabled = isFreeHit || extraType === 'NO_BALL' || runs > 0;
+    } else if (type === 'RUN_OUT') {
+      isDisabled = runs === 4 || runs === 6;
+    }
+
     if (isDisabled) {
       return `flex-1 transition-all text-white/50 rounded-2xl h-16 flex items-center justify-center bg-red-500/50 cursor-not-allowed`;
     }
@@ -136,7 +147,11 @@ export default function ScoringKeypad({
           >
             <span className="text-xl font-bold tracking-widest">OUT</span>
           </button>
-          <button onClick={() => handleWicket('RUN_OUT')} className={getWicketClass('RUN_OUT')}>
+          <button
+            onClick={() => handleWicket('RUN_OUT')}
+            className={getWicketClass('RUN_OUT')}
+            disabled={runs === 4 || runs === 6}
+          >
             <span className="text-xl font-bold tracking-widest">RUN OUT</span>
           </button>
         </div>

@@ -89,7 +89,7 @@ export const AddPlayersStep: React.FC<AddPlayersStepProps> = ({ onNext, onBack }
               <select
                 value={selectedTeam}
                 onChange={(e) => setSelectedTeam(e.target.value as 'A' | 'B')}
-                className="w-full appearance-none rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-brand-card-dark px-4 py-3 text-base text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-green transition-all"
+                className="w-full appearance-none rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-brand-card-dark px-4 py-3 text-base text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-green transition-all capitalize"
               >
                 <option value="A">{teamA || 'Team A'}</option>
                 <option value="B">{teamB || 'Team B'}</option>

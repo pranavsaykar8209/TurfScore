@@ -91,13 +91,13 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({ onBack, onSubmit, sessio
         </div>
 
         <div className="flex items-center justify-between pt-4 mt-2 border-t border-slate-200 dark:border-white/10">
-          <Button onClick={onBack} type="button" variant="ghost" className="flex items-center gap-2">
+          <Button onClick={onBack} type="button" variant="ghost" className="flex items-center gap-2 whitespace-nowrap px-4">
             <ArrowLeft className="w-4 h-4" />
-            Back
+            <span className="hidden md:inline">Back</span>
           </Button>
-          <Button onClick={onSubmit} type="button" isLoading={isSubmitting} className="flex items-center justify-center gap-2 px-8">
-            <CheckCircle2 className="w-5 h-5" />
-            Create Session
+          <Button onClick={onSubmit} type="button" isLoading={isSubmitting} className="flex items-center justify-center gap-2 px-6 md:px-8 whitespace-nowrap">
+            {!isSubmitting && <CheckCircle2 className="w-5 h-5" />}
+            {isSubmitting ? 'Creating...' : 'Create Session'}
           </Button>
         </div>
       </Card>

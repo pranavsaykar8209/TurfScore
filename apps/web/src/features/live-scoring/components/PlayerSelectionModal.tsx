@@ -11,6 +11,7 @@ interface PlayerSelectionModalProps {
   currentStriker?: PlayerSelection | null;
   currentNonStriker?: PlayerSelection | null;
   pendingWicketType?: string;
+  title?: string;
 }
 
 export default function PlayerSelectionModal({
@@ -20,7 +21,8 @@ export default function PlayerSelectionModal({
   onSubmit,
   currentStriker,
   currentNonStriker,
-  pendingWicketType
+  pendingWicketType,
+  title
 }: PlayerSelectionModalProps) {
   const [selectedPlayer, setSelectedPlayer] = useState<PlayerSelection | null>(null);
   const [outPlayerId, setOutPlayerId] = useState<string | undefined>(
@@ -41,7 +43,7 @@ export default function PlayerSelectionModal({
       <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 md:p-8 shadow-xl border border-slate-200 dark:border-slate-800 w-full max-w-md animate-in fade-in zoom-in duration-200">
         
         <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6">
-          {type === 'BATSMAN' ? 'Select Next Batsman' : 'Select Next Bowler'}
+          {title ? title : (type === 'BATSMAN' ? 'Select Next Batsman' : 'Select Next Bowler')}
         </h2>
 
         {showWhoIsOutSelection ? (

@@ -74,9 +74,8 @@ export default function ScoreboardCard({ battingTeamName, bowlingTeamName, match
             <div className="flex flex-col items-center md:items-start bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700/50">
               <span className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">Target</span>
               <span className="text-2xl font-bold text-slate-900 dark:text-white">{target}</span>
-              <div className="mt-1 flex items-center gap-2 text-xs font-medium">
-                <span className="text-slate-500">Req:</span>
-                <span className="text-brand-primary">{target - totalRuns}</span>
+              <div className="mt-1 flex items-center text-xs font-bold text-brand-primary bg-brand-primary/10 px-2 py-1 rounded-md">
+                Need {Math.max(0, target - totalRuns)} runs in {Math.max(0, (totalOvers * 6) - (currentOver * 6 + currentBall))} balls
               </div>
             </div>
           )}

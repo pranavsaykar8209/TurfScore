@@ -50,6 +50,14 @@ export interface MatchState {
   // Target (for 2nd innings)
   target?: number;
   
+  // Match Status
+  innings: 1 | 2;
+  isInningsComplete: boolean;
+  isMatchComplete: boolean;
+  matchWinner?: 'BATTING_TEAM' | 'BOWLING_TEAM' | 'TIE';
+  winMargin?: string;
+  firstInningsScore?: { runs: number; wickets: number; overs: number; overDeliveries: number };
+  
   // Overs tracking
   overs: Over[];
   currentOverDeliveries: Delivery[];

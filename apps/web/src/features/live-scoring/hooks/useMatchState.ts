@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { MatchState, Delivery, DeliveryType } from '../types';
 
-export function useMatchState(initialState: Partial<MatchState>) {
+export function useMatchState(initialState: Partial<MatchState>, matchConfig: { totalOvers: number; teamSize: number }) {
   const [state, setState] = useState<MatchState>({
     totalRuns: 0,
     extraRuns: 0,
@@ -15,6 +15,9 @@ export function useMatchState(initialState: Partial<MatchState>) {
     currentOverDeliveries: [],
     batterStats: {},
     bowlerStats: {},
+    innings: initialState.innings || 1,
+    isInningsComplete: initialState.isInningsComplete || false,
+    isMatchComplete: initialState.isMatchComplete || false,
     ...initialState,
     needsNewBatsman: false,
     needsNewBowler: false,
@@ -188,7 +191,7 @@ export function useMatchState(initialState: Partial<MatchState>) {
         nextIsFreeHit = false;
       }
 
-      return {
+      const newState: MatchState = {
         ...prev,
         totalRuns,
         extraRuns,
@@ -206,10 +209,50 @@ export function useMatchState(initialState: Partial<MatchState>) {
         needsNewBowler: newNeedsNewBowler,
         pendingWicketType: newPendingWicketType,
       };
+
+      // Evaluate match rules
+      if (newState.innings === 1) {
+        const isAllOut = newState.totalWickets >= matchConfig.teamSize - 1;
+        const isOversComplete = newState.currentOver >= matchConfig.totalOvers;
+
+        if (isAllOut || isOversComplete) {
+          newState.isInningsComplete = true;
+          newState.target = newState.totalRuns + 1;
+          newState.needsNewBatsman = false;
+          newState.needsNewBowler = false;
+        }
+      } else if (newState.innings === 2) {
+        const isTargetReached = newState.target ? newState.totalRuns >= newState.target : false;
+        const isAllOut = newState.totalWickets >= matchConfig.teamSize - 1;
+        const isOversComplete = newState.currentOver >= matchConfig.totalOvers;
+
+        if (isTargetReached) {
+          newState.isMatchComplete = true;
+          newState.isInningsComplete = true;
+          newState.matchWinner = 'BATTING_TEAM';
+          newState.winMargin = `${matchConfig.teamSize - 1 - newState.totalWickets} wickets`;
+          newState.needsNewBatsman = false;
+          newState.needsNewBowler = false;
+        } else if (isAllOut || isOversComplete) {
+          newState.isMatchComplete = true;
+          newState.isInningsComplete = true;
+          
+          if (newState.target && newState.totalRuns < newState.target - 1) {
+             newState.matchWinner = 'BOWLING_TEAM';
+             newState.winMargin = `${newState.target - 1 - newState.totalRuns} runs`;
+          } else {
+             newState.matchWinner = 'TIE';
+          }
+          newState.needsNewBatsman = false;
+          newState.needsNewBowler = false;
+        }
+      }
+
+      return newState;
     });
   }, [saveHistory]);
 
-  const setNewBatsman = useCallback((player: import('../match-setup/types').PlayerSelection, outPlayerId?: string) => {
+  const setNewBatsman = useCallback((player: import('../../match-setup/types').PlayerSelection, outPlayerId?: string) => {
     saveHistory();
     setState((prev) => {
       let { striker, nonStriker } = prev;
@@ -234,7 +277,7 @@ export function useMatchState(initialState: Partial<MatchState>) {
     });
   }, [saveHistory]);
 
-  const setNewBowler = useCallback((player: import('../match-setup/types').PlayerSelection) => {
+  const setNewBowler = useCallback((player: import('../../match-setup/types').PlayerSelection) => {
     saveHistory();
     setState((prev) => ({
       ...prev,
@@ -281,6 +324,39 @@ export function useMatchState(initialState: Partial<MatchState>) {
     });
   }, []);
 
+  const startSecondInnings = useCallback((setup: { striker: import('../../match-setup/types').PlayerSelection | null; nonStriker: import('../../match-setup/types').PlayerSelection | null; bowler: import('../../match-setup/types').PlayerSelection | null; }) => {
+    saveHistory();
+    setState((prev) => ({
+      ...prev,
+      innings: 2,
+      isInningsComplete: false,
+      isMatchComplete: false,
+      firstInningsScore: {
+        runs: prev.totalRuns,
+        wickets: prev.totalWickets,
+        overs: prev.currentOver,
+        overDeliveries: prev.currentBall,
+      },
+      totalRuns: 0,
+      extraRuns: 0,
+      totalWickets: 0,
+      currentOver: 0,
+      currentBall: 0,
+      overs: [],
+      currentOverDeliveries: [],
+      batterStats: {},
+      bowlerStats: {},
+      outPlayers: [],
+      striker: setup.striker,
+      nonStriker: setup.nonStriker,
+      currentBowler: setup.bowler,
+      isFreeHit: false,
+      needsNewBatsman: false,
+      needsNewBowler: false,
+      pendingWicketType: undefined,
+    }));
+  }, [saveHistory]);
+
   return {
     state,
     addDelivery,
@@ -290,6 +366,7 @@ export function useMatchState(initialState: Partial<MatchState>) {
     undo,
     setNewBatsman,
     setNewBowler,
+    startSecondInnings,
     canUndo: history.length > 0,
   };
 }
