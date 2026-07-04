@@ -16,7 +16,7 @@ export default function PlayersActiveCard({ matchState }: PlayersActiveCardProps
         
         <div className="flex flex-col gap-3">
           {/* Striker */}
-          <div className="flex items-center justify-between p-3 rounded-xl bg-brand-green/5 border border-brand-green/20">
+          <div className="flex items-center justify-between p-3 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm">
             <div className="flex items-center gap-3">
               <span className="text-brand-green">🏏</span>
               <div>

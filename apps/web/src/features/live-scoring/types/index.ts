@@ -7,6 +7,8 @@ export interface Delivery {
   runs: number;
   type: DeliveryType;
   isBoundary?: boolean;
+  isWicket?: boolean;
+  wicketType?: string;
   bowlerId: string;
   batterId: string;
 }

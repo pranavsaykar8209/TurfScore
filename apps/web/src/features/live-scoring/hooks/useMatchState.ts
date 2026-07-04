@@ -22,40 +22,58 @@ export function useMatchState(initialState: Partial<MatchState>) {
     setHistory((prev) => [...prev, structuredClone(state)]);
   }, [state]);
 
-  const addDelivery = useCallback((
-    runs: number, 
-    type: DeliveryType = 'NORMAL', 
-    isBoundary: boolean = false
-  ) => {
+  const addDelivery = useCallback((params: {
+    runs: number;
+    type?: DeliveryType;
+    isBoundary?: boolean;
+    isWicket?: boolean;
+    wicketType?: string;
+  }) => {
     saveHistory();
 
     setState((prev) => {
+      const { runs, type = 'NORMAL', isBoundary = false, isWicket = false, wicketType } = params;
       const isLegal = type !== 'WIDE' && type !== 'NO_BALL';
-      const isWicket = type === 'WICKET';
+      const actualIsWicket = isWicket || type === 'WICKET';
       
       const newTotalRuns = prev.totalRuns + runs + (!isLegal ? 1 : 0); // Wides/NB usually give 1 penalty run
-      const newTotalWickets = prev.totalWickets + (isWicket ? 1 : 0);
+      const newTotalWickets = prev.totalWickets + (actualIsWicket ? 1 : 0);
       
-      const newBall = isLegal ? prev.currentBall + 1 : prev.currentBall;
+      let newBall = isLegal ? prev.currentBall + 1 : prev.currentBall;
       
       const delivery: Delivery = {
         id: Date.now().toString(),
         runs,
         type,
         isBoundary,
+        isWicket: actualIsWicket,
+        wicketType,
         bowlerId: prev.currentBowler?.id || '',
         batterId: prev.striker?.id || '',
       };
 
-      const deliveries = [...prev.currentOverDeliveries, delivery];
+      let newOverDeliveries = [...prev.currentOverDeliveries, delivery];
+      let newOvers = prev.overs;
+      let newCurrentOver = prev.currentOver;
 
       // Auto-change strike on odd runs if it's a legal ball
       let newStriker = prev.striker;
       let newNonStriker = prev.nonStriker;
       
-      if (runs % 2 !== 0 && type !== 'WICKET') {
+      if (runs % 2 !== 0 && !actualIsWicket) {
         newStriker = prev.nonStriker;
         newNonStriker = prev.striker;
+      }
+
+      if (newBall >= 6) {
+        newOvers = [...prev.overs, { overNumber: prev.currentOver + 1, deliveries: newOverDeliveries, isComplete: true }];
+        newCurrentOver = prev.currentOver + 1;
+        newBall = 0;
+        newOverDeliveries = [];
+        // Swap strike at end of over
+        const temp = newStriker;
+        newStriker = newNonStriker;
+        newNonStriker = temp;
       }
 
       return {
@@ -63,7 +81,9 @@ export function useMatchState(initialState: Partial<MatchState>) {
         totalRuns: newTotalRuns,
         totalWickets: newTotalWickets,
         currentBall: newBall,
-        currentOverDeliveries: deliveries,
+        currentOver: newCurrentOver,
+        overs: newOvers,
+        currentOverDeliveries: newOverDeliveries,
         striker: newStriker,
         nonStriker: newNonStriker,
       };
@@ -71,7 +91,7 @@ export function useMatchState(initialState: Partial<MatchState>) {
   }, [saveHistory]);
 
   const addWicket = useCallback(() => {
-    addDelivery(0, 'WICKET');
+    addDelivery({ runs: 0, isWicket: true });
   }, [addDelivery]);
 
   const endOver = useCallback(() => {

@@ -7,8 +7,8 @@ interface CurrentOverTrackerProps {
 export default function CurrentOverTracker({ matchState }: CurrentOverTrackerProps) {
   const { currentOverDeliveries, currentBall } = matchState;
 
-  // Render a placeholder ball if less than 6 balls thrown
-  const placeholders = Array.from({ length: Math.max(0, 6 - currentOverDeliveries.length) });
+  // Render a placeholder ball if less than 6 legal balls thrown
+  const placeholders = Array.from({ length: Math.max(0, 6 - currentBall) });
 
   return (
     <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-sm border border-slate-200 dark:border-slate-800 flex flex-col md:flex-row gap-6 h-full min-w-0 overflow-hidden">
@@ -56,13 +56,20 @@ export default function CurrentOverTracker({ matchState }: CurrentOverTrackerPro
             let bgClass = "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300";
             let display = delivery.runs.toString();
 
-            if (delivery.type === 'WICKET') {
+            if (delivery.isWicket || delivery.type === 'WICKET') {
               bgClass = "bg-red-500 text-white";
-              display = 'W';
+              if (delivery.type === 'WIDE' || delivery.type === 'NO_BALL') {
+                display = `W+${delivery.type === 'WIDE' ? 'WD' : 'NB'}`;
+              } else {
+                display = 'W';
+              }
+              if (delivery.runs > 0) {
+                display += `+${delivery.runs}`;
+              }
             } else if (delivery.type === 'WIDE') {
-              display = `${delivery.runs > 0 ? delivery.runs : ''}WD`;
+              display = `${delivery.runs > 0 ? delivery.runs + '+' : ''}WD`;
             } else if (delivery.type === 'NO_BALL') {
-              display = `${delivery.runs > 0 ? delivery.runs : ''}NB`;
+              display = `${delivery.runs > 0 ? delivery.runs + '+' : ''}NB`;
             } else if (delivery.isBoundary && delivery.runs === 4) {
               bgClass = "bg-brand-green text-brand-dark";
             } else if (delivery.isBoundary && delivery.runs === 6) {
@@ -71,10 +78,12 @@ export default function CurrentOverTracker({ matchState }: CurrentOverTrackerPro
               display = '•';
             }
 
+            const textClass = display.length > 2 ? "text-sm" : "text-lg";
+
             return (
               <div 
                 key={delivery.id} 
-                className={`w-12 h-12 shrink-0 rounded-full flex items-center justify-center font-bold text-lg ${bgClass} transition-all`}
+                className={`min-w-[3rem] h-12 px-2 shrink-0 rounded-full flex items-center justify-center font-bold ${textClass} ${bgClass} transition-all`}
               >
                 {display}
               </div>

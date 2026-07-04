@@ -42,13 +42,6 @@ export default function LiveScoringPage() {
     currentBowler: matchSetup.bowler,
   });
 
-  const handleEndInnings = () => {
-    // Basic end innings alert for this version
-    if (confirm("Are you sure you want to end this innings?")) {
-      alert("Innings Ended. Implement 2nd innings logic here.");
-    }
-  };
-
   const isOverComplete = matchState.currentBall >= 6;
 
   return (
@@ -79,13 +72,9 @@ export default function LiveScoringPage() {
           <div className="col-span-1">
             <ScoringKeypad 
               onAddDelivery={addDelivery}
-              onWicket={addWicket}
               onUndo={undo}
               onChangeStrike={changeStrike}
               canUndo={canUndo}
-              onEndOver={endOver}
-              canEndOver={isOverComplete}
-              onEndInnings={handleEndInnings}
             />
           </div>
         </div>

@@ -1,27 +1,79 @@
+import { useState } from 'react';
 import { DeliveryType } from '../types';
 
 interface ScoringKeypadProps {
-  onAddDelivery: (runs: number, type?: DeliveryType, isBoundary?: boolean) => void;
-  onWicket: () => void;
+  onAddDelivery: (params: { runs: number; type?: DeliveryType; isBoundary?: boolean; isWicket?: boolean; wicketType?: string }) => void;
   onUndo: () => void;
   onChangeStrike: () => void;
   canUndo: boolean;
-  onEndOver: () => void;
-  canEndOver: boolean;
-  onEndInnings: () => void;
 }
 
 export default function ScoringKeypad({ 
   onAddDelivery, 
-  onWicket, 
   onUndo, 
   onChangeStrike,
-  canUndo,
-  onEndOver,
-  canEndOver,
-  onEndInnings
+  canUndo
 }: ScoringKeypadProps) {
   
+  const [runs, setRuns] = useState<number>(0);
+  const [isBoundary, setIsBoundary] = useState<boolean>(false);
+  const [extraType, setExtraType] = useState<DeliveryType>('NORMAL');
+  const [isWicket, setIsWicket] = useState<boolean>(false);
+  const [wicketType, setWicketType] = useState<string | null>(null);
+
+  const handleRuns = (r: number, bound: boolean = false) => {
+    setRuns(r);
+    setIsBoundary(bound);
+  };
+
+  const handleExtra = (type: DeliveryType) => {
+    if (extraType === type) {
+      setExtraType('NORMAL');
+    } else {
+      setExtraType(type);
+    }
+  };
+
+  const handleWicket = (type: string) => {
+    if (isWicket && wicketType === type) {
+      setIsWicket(false);
+      setWicketType(null);
+    } else {
+      setIsWicket(true);
+      setWicketType(type);
+    }
+  };
+
+  const handleRecordBall = () => {
+    onAddDelivery({
+      runs,
+      type: extraType,
+      isBoundary,
+      isWicket,
+      wicketType: wicketType || undefined
+    });
+    setRuns(0);
+    setIsBoundary(false);
+    setExtraType('NORMAL');
+    setIsWicket(false);
+    setWicketType(null);
+  };
+
+  const getRunClass = (r: number, bound: boolean = false) => {
+    const isSelected = runs === r && isBoundary === bound;
+    return `active:scale-95 transition-all rounded-2xl aspect-square flex items-center justify-center text-3xl font-bold ${isSelected ? 'bg-brand-green text-brand-dark ring-4 ring-brand-green ring-offset-2 dark:ring-offset-slate-900' : 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-700'}`;
+  };
+
+  const getExtraClass = (type: DeliveryType) => {
+    const isSelected = extraType === type;
+    return `active:scale-95 transition-all rounded-2xl h-16 flex flex-col items-center justify-center ${isSelected ? 'bg-brand-green text-brand-dark ring-4 ring-brand-green ring-offset-2 dark:ring-offset-slate-900' : 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-700'}`;
+  };
+
+  const getWicketClass = (type: string) => {
+    const isSelected = isWicket && wicketType === type;
+    return `flex-1 active:scale-95 transition-all text-white rounded-2xl h-16 flex items-center justify-center ${isSelected ? 'bg-red-500 ring-4 ring-red-500 ring-offset-2 dark:ring-offset-slate-900' : 'bg-red-500 hover:bg-red-600'}`;
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-12 gap-6 h-full">
       
@@ -29,12 +81,12 @@ export default function ScoringKeypad({
       <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-sm border border-slate-200 dark:border-slate-800 md:col-span-5 h-full flex flex-col">
         <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-4">Runs</h3>
         <div className="grid grid-cols-3 gap-4 flex-1">
-          <button onClick={() => onAddDelivery(0)} className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 active:scale-95 transition-all rounded-2xl aspect-square flex items-center justify-center text-3xl font-bold text-slate-900 dark:text-white">0</button>
-          <button onClick={() => onAddDelivery(1)} className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 active:scale-95 transition-all rounded-2xl aspect-square flex items-center justify-center text-3xl font-bold text-slate-900 dark:text-white">1</button>
-          <button onClick={() => onAddDelivery(2)} className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 active:scale-95 transition-all rounded-2xl aspect-square flex items-center justify-center text-3xl font-bold text-slate-900 dark:text-white">2</button>
-          <button onClick={() => onAddDelivery(3)} className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 active:scale-95 transition-all rounded-2xl aspect-square flex items-center justify-center text-3xl font-bold text-slate-900 dark:text-white">3</button>
-          <button onClick={() => onAddDelivery(4, 'NORMAL', true)} className="bg-brand-green text-brand-dark hover:bg-brand-green/90 active:scale-95 transition-all rounded-2xl aspect-square flex items-center justify-center text-4xl font-bold shadow-[0_0_20px_rgba(184,255,26,0.3)]">4</button>
-          <button onClick={() => onAddDelivery(6, 'NORMAL', true)} className="bg-brand-green text-brand-dark hover:bg-brand-green/90 active:scale-95 transition-all rounded-2xl aspect-square flex items-center justify-center text-4xl font-bold shadow-[0_0_20px_rgba(184,255,26,0.3)]">6</button>
+          <button onClick={() => handleRuns(0)} className={getRunClass(0)}>0</button>
+          <button onClick={() => handleRuns(1)} className={getRunClass(1)}>1</button>
+          <button onClick={() => handleRuns(2)} className={getRunClass(2)}>2</button>
+          <button onClick={() => handleRuns(3)} className={getRunClass(3)}>3</button>
+          <button onClick={() => handleRuns(4, true)} className={getRunClass(4, true)}>4</button>
+          <button onClick={() => handleRuns(6, true)} className={getRunClass(6, true)}>6</button>
         </div>
       </div>
 
@@ -42,21 +94,21 @@ export default function ScoringKeypad({
       <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-sm border border-slate-200 dark:border-slate-800 md:col-span-3 h-full">
         <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-4">Extras</h3>
         <div className="grid grid-cols-2 gap-4">
-          <button onClick={() => onAddDelivery(0, 'WIDE')} className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 active:scale-95 transition-all rounded-2xl h-16 flex flex-col items-center justify-center">
-            <span className="font-bold text-slate-900 dark:text-white">WD</span>
-            <span className="text-[10px] text-slate-500 uppercase">Wide</span>
+          <button onClick={() => handleExtra('WIDE')} className={getExtraClass('WIDE')}>
+            <span className="font-bold text-inherit">WD</span>
+            <span className="text-[10px] uppercase opacity-80">Wide</span>
           </button>
-          <button onClick={() => onAddDelivery(0, 'NO_BALL')} className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 active:scale-95 transition-all rounded-2xl h-16 flex flex-col items-center justify-center">
-            <span className="font-bold text-slate-900 dark:text-white">NB</span>
-            <span className="text-[10px] text-slate-500 uppercase">No Ball</span>
+          <button onClick={() => handleExtra('NO_BALL')} className={getExtraClass('NO_BALL')}>
+            <span className="font-bold text-inherit">NB</span>
+            <span className="text-[10px] uppercase opacity-80">No Ball</span>
           </button>
-          <button onClick={() => onAddDelivery(1, 'BYE')} className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 active:scale-95 transition-all rounded-2xl h-16 flex flex-col items-center justify-center">
-            <span className="font-bold text-slate-900 dark:text-white">BYE</span>
-            <span className="text-[10px] text-slate-500 uppercase">Bye</span>
+          <button onClick={() => handleExtra('BYE')} className={getExtraClass('BYE')}>
+            <span className="font-bold text-inherit">BYE</span>
+            <span className="text-[10px] uppercase opacity-80">Bye</span>
           </button>
-          <button onClick={() => onAddDelivery(1, 'LEG_BYE')} className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 active:scale-95 transition-all rounded-2xl h-16 flex flex-col items-center justify-center">
-            <span className="font-bold text-slate-900 dark:text-white">LB</span>
-            <span className="text-[10px] text-slate-500 uppercase">Leg Bye</span>
+          <button onClick={() => handleExtra('LEG_BYE')} className={getExtraClass('LEG_BYE')}>
+            <span className="font-bold text-inherit">LB</span>
+            <span className="text-[10px] uppercase opacity-80">Leg Bye</span>
           </button>
         </div>
       </div>
@@ -65,10 +117,15 @@ export default function ScoringKeypad({
       <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-sm border border-slate-200 dark:border-slate-800 md:col-span-4 h-full flex flex-col">
         <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-4">Actions</h3>
         
-        {/* Wicket */}
-        <button onClick={onWicket} className="w-full bg-red-500 hover:bg-red-600 active:scale-95 transition-all text-white rounded-2xl h-16 flex items-center justify-center mb-4">
-          <span className="text-xl font-bold tracking-widest">WICKET</span>
-        </button>
+        {/* Wickets */}
+        <div className="flex gap-4 mb-4">
+          <button onClick={() => handleWicket('BOWLED')} className={getWicketClass('BOWLED')}>
+            <span className="text-xl font-bold tracking-widest">OUT</span>
+          </button>
+          <button onClick={() => handleWicket('RUN_OUT')} className={getWicketClass('RUN_OUT')}>
+            <span className="text-xl font-bold tracking-widest">RUN OUT</span>
+          </button>
+        </div>
 
         {/* Action Grid */}
         <div className="grid grid-cols-2 gap-4 mb-auto">
@@ -85,17 +142,10 @@ export default function ScoringKeypad({
         {/* Match Controls */}
         <div className="flex gap-4 mt-6 pt-6 border-t border-slate-100 dark:border-slate-800">
           <button 
-            onClick={onEndOver}
-            disabled={!canEndOver}
-            className={`flex-1 rounded-2xl h-14 font-bold uppercase text-xs tracking-wider border-2 ${canEndOver ? 'border-brand-primary text-brand-primary hover:bg-brand-primary/10 active:scale-95' : 'border-slate-200 text-slate-400 dark:border-slate-700 opacity-50 cursor-not-allowed'}`}
+            onClick={handleRecordBall}
+            className="w-full rounded-2xl h-14 font-bold uppercase text-sm tracking-wider bg-brand-green text-brand-dark shadow-lg hover:bg-brand-green/90 active:scale-95 transition-all"
           >
-            End Over
-          </button>
-          <button 
-            onClick={onEndInnings}
-            className="flex-1 rounded-2xl h-14 font-bold uppercase text-xs tracking-wider bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 active:scale-95"
-          >
-            End Innings
+            Record Ball
           </button>
         </div>
 
