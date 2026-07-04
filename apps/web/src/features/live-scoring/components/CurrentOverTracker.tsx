@@ -88,7 +88,7 @@ export default function CurrentOverTracker({ matchState }: CurrentOverTrackerPro
             return (
               <div 
                 key={delivery.id} 
-                className={`min-w-[3rem] h-12 px-2 shrink-0 rounded-full flex items-center justify-center font-bold ${textClass} ${bgClass} transition-all`}
+                className={`min-w-[3rem] h-12 px-4 shrink-0 rounded-full flex items-center justify-center font-bold ${textClass} ${bgClass} transition-all`}
               >
                 {display}
               </div>

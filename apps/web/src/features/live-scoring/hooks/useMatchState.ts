@@ -16,6 +16,10 @@ export function useMatchState(initialState: Partial<MatchState>) {
     batterStats: {},
     bowlerStats: {},
     ...initialState,
+    needsNewBatsman: false,
+    needsNewBowler: false,
+    pendingWicketType: undefined,
+    outPlayers: initialState.outPlayers || [],
   });
 
   const [history, setHistory] = useState<MatchState[]>([]);
@@ -49,6 +53,10 @@ export function useMatchState(initialState: Partial<MatchState>) {
         nonStriker,
         batterStats,
         bowlerStats,
+        isFreeHit,
+        needsNewBatsman,
+        needsNewBowler,
+        pendingWicketType,
       } = prev;
 
       const strikerId = striker?.id || '';
@@ -76,6 +84,9 @@ export function useMatchState(initialState: Partial<MatchState>) {
       let ballsToAddOver = 0;
       let wicketsToAdd = 0;
       let changeStrike = false;
+      let newNeedsNewBatsman = needsNewBatsman;
+      let newNeedsNewBowler = needsNewBowler;
+      let newPendingWicketType = pendingWicketType;
 
       if (actualIsWicket) {
         wicketsToAdd = 1;
@@ -86,6 +97,8 @@ export function useMatchState(initialState: Partial<MatchState>) {
         runsToAddBatter = runs;
         runsToAddBowler = runs;
         if (runs % 2 !== 0) changeStrike = true; // In case batters crossed on a run-out
+        newNeedsNewBatsman = true;
+        newPendingWicketType = wicketType || 'BOWLED';
       } else if (type === 'WIDE') {
         runsToAddTeam = 1 + runs;
         runsToAddExtra = 1 + runs;
@@ -164,6 +177,15 @@ export function useMatchState(initialState: Partial<MatchState>) {
         const temp = striker;
         striker = nonStriker;
         nonStriker = temp;
+        
+        newNeedsNewBowler = true;
+      }
+
+      let nextIsFreeHit = isFreeHit;
+      if (type === 'NO_BALL') {
+        nextIsFreeHit = true;
+      } else if (type !== 'WIDE') {
+        nextIsFreeHit = false;
       }
 
       return {
@@ -179,8 +201,46 @@ export function useMatchState(initialState: Partial<MatchState>) {
         nonStriker,
         batterStats: newBatterStats,
         bowlerStats: newBowlerStats,
+        isFreeHit: nextIsFreeHit,
+        needsNewBatsman: newNeedsNewBatsman,
+        needsNewBowler: newNeedsNewBowler,
+        pendingWicketType: newPendingWicketType,
       };
     });
+  }, [saveHistory]);
+
+  const setNewBatsman = useCallback((player: import('../match-setup/types').PlayerSelection, outPlayerId?: string) => {
+    saveHistory();
+    setState((prev) => {
+      let { striker, nonStriker } = prev;
+      if (striker?.id === outPlayerId) {
+        striker = player;
+      } else if (nonStriker?.id === outPlayerId) {
+        nonStriker = player;
+      } else {
+        // Fallback: if no outPlayerId specified, just replace whoever is null, or default to striker
+        if (!striker) striker = player;
+        else if (!nonStriker) nonStriker = player;
+        else striker = player; 
+      }
+      return {
+        ...prev,
+        striker,
+        nonStriker,
+        needsNewBatsman: false,
+        pendingWicketType: undefined,
+        outPlayers: outPlayerId ? [...prev.outPlayers, outPlayerId] : prev.outPlayers,
+      };
+    });
+  }, [saveHistory]);
+
+  const setNewBowler = useCallback((player: import('../match-setup/types').PlayerSelection) => {
+    saveHistory();
+    setState((prev) => ({
+      ...prev,
+      currentBowler: player,
+      needsNewBowler: false,
+    }));
   }, [saveHistory]);
 
   const addWicket = useCallback(() => {
@@ -228,6 +288,8 @@ export function useMatchState(initialState: Partial<MatchState>) {
     endOver,
     changeStrike,
     undo,
+    setNewBatsman,
+    setNewBowler,
     canUndo: history.length > 0,
   };
 }

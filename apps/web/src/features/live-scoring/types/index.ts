@@ -53,4 +53,11 @@ export interface MatchState {
   // Overs tracking
   overs: Over[];
   currentOverDeliveries: Delivery[];
+  
+  // Rules state
+  isFreeHit?: boolean;
+  needsNewBatsman?: boolean;
+  needsNewBowler?: boolean;
+  pendingWicketType?: string;
+  outPlayers: string[];
 }

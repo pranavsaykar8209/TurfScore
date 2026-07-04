@@ -6,15 +6,17 @@ interface ScoringKeypadProps {
   onUndo: () => void;
   onChangeStrike: () => void;
   canUndo: boolean;
+  isFreeHit?: boolean;
 }
 
-export default function ScoringKeypad({ 
-  onAddDelivery, 
-  onUndo, 
+export default function ScoringKeypad({
+  onAddDelivery,
+  onUndo,
   onChangeStrike,
-  canUndo
+  canUndo,
+  isFreeHit = false
 }: ScoringKeypadProps) {
-  
+
   const [runs, setRuns] = useState<number>(0);
   const [isBoundary, setIsBoundary] = useState<boolean>(false);
   const [extraType, setExtraType] = useState<DeliveryType>('NORMAL');
@@ -24,6 +26,10 @@ export default function ScoringKeypad({
   const handleRuns = (r: number, bound: boolean = false) => {
     setRuns(r);
     setIsBoundary(bound);
+    if (r > 0 && isWicket && wicketType === 'BOWLED') {
+      setIsWicket(false);
+      setWicketType(null);
+    }
   };
 
   const handleExtra = (type: DeliveryType) => {
@@ -71,12 +77,16 @@ export default function ScoringKeypad({
 
   const getWicketClass = (type: string) => {
     const isSelected = isWicket && wicketType === type;
+    const isDisabled = type === 'BOWLED' && (isFreeHit || extraType === 'NO_BALL' || runs > 0);
+    if (isDisabled) {
+      return `flex-1 transition-all text-white/50 rounded-2xl h-16 flex items-center justify-center bg-red-500/50 cursor-not-allowed`;
+    }
     return `flex-1 active:scale-95 transition-all text-white rounded-2xl h-16 flex items-center justify-center ${isSelected ? 'bg-red-500 ring-4 ring-red-500 ring-offset-2 dark:ring-offset-slate-900' : 'bg-red-500 hover:bg-red-600'}`;
   };
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-12 gap-6 h-full">
-      
+
       {/* Runs Box */}
       <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-sm border border-slate-200 dark:border-slate-800 md:col-span-5 h-full flex flex-col">
         <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-4">Runs</h3>
@@ -116,10 +126,14 @@ export default function ScoringKeypad({
       {/* Actions & Controls Box */}
       <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-sm border border-slate-200 dark:border-slate-800 md:col-span-4 h-full flex flex-col">
         <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-4">Actions</h3>
-        
+
         {/* Wickets */}
         <div className="flex gap-4 mb-4">
-          <button onClick={() => handleWicket('BOWLED')} className={getWicketClass('BOWLED')}>
+          <button
+            onClick={() => handleWicket('BOWLED')}
+            className={getWicketClass('BOWLED')}
+            disabled={isFreeHit || extraType === 'NO_BALL' || runs > 0}
+          >
             <span className="text-xl font-bold tracking-widest">OUT</span>
           </button>
           <button onClick={() => handleWicket('RUN_OUT')} className={getWicketClass('RUN_OUT')}>
@@ -141,7 +155,7 @@ export default function ScoringKeypad({
 
         {/* Match Controls */}
         <div className="flex gap-4 mt-6 pt-6 border-t border-slate-100 dark:border-slate-800">
-          <button 
+          <button
             onClick={handleRecordBall}
             className="w-full rounded-2xl h-14 font-bold uppercase text-sm tracking-wider bg-brand-green text-brand-dark shadow-lg hover:bg-brand-green/90 active:scale-95 transition-all"
           >

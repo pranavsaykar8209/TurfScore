@@ -4,9 +4,10 @@ interface ScoreboardCardProps {
   battingTeamName: string;
   bowlingTeamName: string;
   matchState: MatchState;
+  totalOvers: number;
 }
 
-export default function ScoreboardCard({ battingTeamName, bowlingTeamName, matchState }: ScoreboardCardProps) {
+export default function ScoreboardCard({ battingTeamName, bowlingTeamName, matchState, totalOvers }: ScoreboardCardProps) {
   const { totalRuns, totalWickets, currentOver, currentBall, target } = matchState;
 
   // Calculate overs decimal (e.g. 16 overs and 2 balls = 16.2)
@@ -55,9 +56,17 @@ export default function ScoreboardCard({ battingTeamName, bowlingTeamName, match
               </span>
             </div>
             <div className="mt-2 text-sm md:text-base font-medium text-slate-500 uppercase tracking-wider flex items-center gap-3">
-              <span><span className="text-slate-900 dark:text-white font-bold">{oversDecimal}</span> Overs</span>
+              <span><span className="text-slate-900 dark:text-white font-bold">{oversDecimal}</span> / {totalOvers} Overs</span>
               <span className="text-slate-300 dark:text-slate-700">•</span>
               <span>Extras: <span className="text-slate-900 dark:text-white font-bold">{matchState.extraRuns || 0}</span></span>
+              {matchState.isFreeHit && (
+                <>
+                  <span className="text-slate-300 dark:text-slate-700">•</span>
+                  <span className="bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 px-2 py-0.5 rounded-full text-xs font-bold border border-amber-200 dark:border-amber-800">
+                    FREE HIT
+                  </span>
+                </>
+              )}
             </div>
           </div>
 
