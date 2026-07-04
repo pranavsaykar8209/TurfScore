@@ -3,7 +3,7 @@ import Home from './pages/Home';
 import CreateSession from './pages/CreateSession';
 import TossScreen from './pages/TossScreen';
 import MatchSetup from './pages/MatchSetup';
-import LiveScoring from './pages/LiveScoring';
+import LiveScoring from './features/live-scoring/LiveScoringPage';
 
 function App() {
   return (
