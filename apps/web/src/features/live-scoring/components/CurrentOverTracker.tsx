@@ -16,10 +16,10 @@ export default function CurrentOverTracker({ matchState }: CurrentOverTrackerPro
   const placeholders = Array.from({ length: Math.max(0, 6 - currentBall) });
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-sm border border-slate-200 dark:border-slate-800 flex flex-col md:flex-row gap-6 h-full min-w-0 overflow-hidden">
+    <div className="bg-white dark:bg-slate-900 rounded-3xl p-4 md:p-6 shadow-sm border border-slate-200 dark:border-slate-800 flex flex-col md:flex-row gap-4 md:gap-6 h-full min-w-0 overflow-hidden">
       
       {/* Current Bowler */}
-      <div className="flex-1 flex flex-col justify-between">
+      <div className="hidden md:flex flex-1 flex-col justify-between">
         <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-4">Current Bowler</h3>
         <div className="flex items-center gap-3 mb-2">
           <span className="text-red-400">🥎</span>
@@ -45,9 +45,6 @@ export default function CurrentOverTracker({ matchState }: CurrentOverTrackerPro
 
       {/* Vertical Divider */}
       <div className="hidden md:block w-px bg-slate-200 dark:bg-slate-800"></div>
-      
-      {/* Horizontal Divider (Mobile) */}
-      <div className="md:hidden h-px bg-slate-200 dark:bg-slate-800 w-full"></div>
 
       {/* Current Over */}
       <div className="flex-[2] flex flex-col min-w-0">

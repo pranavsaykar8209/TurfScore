@@ -99,7 +99,7 @@ export default function LiveScoringPage() {
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col font-sans pb-12 pt-32 relative">
       <Navbar data={homeContent.navbar} />
 
-      <div className="max-w-5xl w-full mx-auto px-4 mt-6 flex flex-col gap-6">
+      <div className="max-w-5xl w-full mx-auto px-4 mt-4 lg:mt-6 flex flex-col gap-4 lg:gap-6">
         
         {/* Top: Scoreboard */}
         <ScoreboardCard 
@@ -110,17 +110,17 @@ export default function LiveScoringPage() {
         />
 
         {/* Middle section: Active Players & Over Tracker */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
           <div className="lg:col-span-4">
             <PlayersActiveCard matchState={matchState} highlightStrikeChange={showStrikeWarning} />
           </div>
-          <div className="lg:col-span-8">
+          <div className="hidden lg:block lg:col-span-8">
             <CurrentOverTracker matchState={matchState} />
           </div>
         </div>
 
         {/* Bottom section: Keypad & Controls */}
-        <div className="grid grid-cols-1 gap-6">
+        <div className="grid grid-cols-1 gap-4 lg:gap-6">
           <div className="col-span-1">
             <ScoringKeypad 
               onAddDelivery={isScoringDisabled ? () => {} : addDelivery}

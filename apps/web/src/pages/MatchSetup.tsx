@@ -204,6 +204,10 @@ export default function MatchSetup() {
                 <CheckCircle2 className="w-4 h-4" />
                 <span>Opening Bowler Selected</span>
               </li>
+              <li className={`flex items-center gap-2 transition-colors ${overs !== '' && Number(overs) > 0 ? 'text-brand-primary dark:text-brand-green' : 'text-slate-400'}`}>
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Total Overs Selected</span>
+              </li>
             </ul>
           </div>
 
