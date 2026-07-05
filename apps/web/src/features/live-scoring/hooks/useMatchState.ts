@@ -253,7 +253,6 @@ export function useMatchState(initialState: Partial<MatchState>, matchConfig: { 
   }, [saveHistory]);
 
   const setNewBatsman = useCallback((player: import('../../match-setup/types').PlayerSelection, outPlayerId?: string) => {
-    saveHistory();
     setState((prev) => {
       let { striker, nonStriker } = prev;
       if (striker?.id === outPlayerId) {
@@ -278,13 +277,12 @@ export function useMatchState(initialState: Partial<MatchState>, matchConfig: { 
   }, [saveHistory]);
 
   const setNewBowler = useCallback((player: import('../../match-setup/types').PlayerSelection) => {
-    saveHistory();
     setState((prev) => ({
       ...prev,
       currentBowler: player,
       needsNewBowler: false,
     }));
-  }, [saveHistory]);
+  }, []);
 
   const addWicket = useCallback(() => {
     addDelivery({ runs: 0, isWicket: true });
