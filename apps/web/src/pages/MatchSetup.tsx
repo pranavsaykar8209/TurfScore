@@ -27,7 +27,8 @@ const MOCK_DATA = {
   tossData: {
     result: 'HEAD',
     winner: 'A',
-    decision: 'BAT'
+    decision: 'BAT',
+    overs: 20
   }
 };
 
@@ -56,9 +57,8 @@ export default function MatchSetup() {
   const [striker, setStriker] = useState<PlayerSelection | null>(null);
   const [nonStriker, setNonStriker] = useState<PlayerSelection | null>(null);
   const [bowler, setBowler] = useState<PlayerSelection | null>(null);
-  const [overs, setOvers] = useState<number | ''>('');
 
-  const isComplete = striker && nonStriker && bowler && overs !== '' && Number(overs) > 0;
+  const isComplete = striker && nonStriker && bowler;
 
   const handleStartMatch = () => {
     if (!isComplete) return;
@@ -66,7 +66,7 @@ export default function MatchSetup() {
       state: {
         sessionData,
         tossData,
-        matchSetup: { striker, nonStriker, bowler, overs }
+        matchSetup: { striker, nonStriker, bowler, overs: tossData.overs }
       }
     });
   };
@@ -88,6 +88,29 @@ export default function MatchSetup() {
           {/* Left Column */}
           <div className="flex flex-col gap-8">
           
+          {/* Match Summary Card */}
+          <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-sm border border-slate-200 dark:border-slate-800 flex flex-col gap-4">
+            <div className="flex justify-between items-center pb-4 border-b border-slate-100 dark:border-slate-800">
+              <div className="flex flex-col">
+                <span className="text-xs text-slate-500 uppercase tracking-wider font-semibold">Batting</span>
+                <span className="font-bold text-slate-900 dark:text-white capitalize">{battingTeamName}</span>
+              </div>
+              <div className="text-center px-4 py-1 rounded-full bg-slate-100 dark:bg-slate-800">
+                <span className="text-xs font-bold text-slate-500">VS</span>
+              </div>
+              <div className="flex flex-col items-end">
+                <span className="text-xs text-slate-500 uppercase tracking-wider font-semibold">Bowling</span>
+                <span className="font-bold text-slate-900 dark:text-white capitalize">{bowlingTeamName}</span>
+              </div>
+            </div>
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-slate-600 dark:text-slate-400">Toss</span>
+              <span className="font-medium text-slate-900 dark:text-white capitalize">
+                {tossWinnerName} won ({tossData.decision})
+              </span>
+            </div>
+          </div>
+
           {/* Opening Batters */}
           <section className="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-sm border border-slate-200 dark:border-slate-800">
             <div className="flex items-center gap-2 mb-4">
@@ -130,52 +153,10 @@ export default function MatchSetup() {
             />
           </section>
 
-          {/* Match Rules */}
-          <section className="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-sm border border-slate-200 dark:border-slate-800">
-            <div className="flex items-center gap-2 mb-4">
-              <span className="text-xl">⏱️</span>
-              <h2 className="font-semibold text-slate-900 dark:text-white">Match Rules</h2>
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Total Overs</label>
-              <input 
-                type="number"
-                min="1"
-                placeholder="e.g. 20"
-                value={overs}
-                onChange={(e) => setOvers(e.target.value ? parseInt(e.target.value) : '')}
-                className="w-full p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:border-brand-primary/50 outline-none text-slate-900 dark:text-white transition-colors"
-              />
-            </div>
-          </section>
-
           </div>
 
           {/* Right Column */}
-          <div className="flex flex-col gap-8">
-
-          {/* Match Summary Card */}
-          <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-sm border border-slate-200 dark:border-slate-800 flex flex-col gap-4">
-            <div className="flex justify-between items-center pb-4 border-b border-slate-100 dark:border-slate-800">
-              <div className="flex flex-col">
-                <span className="text-xs text-slate-500 uppercase tracking-wider font-semibold">Batting</span>
-                <span className="font-bold text-slate-900 dark:text-white capitalize">{battingTeamName}</span>
-              </div>
-              <div className="text-center px-4 py-1 rounded-full bg-slate-100 dark:bg-slate-800">
-                <span className="text-xs font-bold text-slate-500">VS</span>
-              </div>
-              <div className="flex flex-col items-end">
-                <span className="text-xs text-slate-500 uppercase tracking-wider font-semibold">Bowling</span>
-                <span className="font-bold text-slate-900 dark:text-white capitalize">{bowlingTeamName}</span>
-              </div>
-            </div>
-            <div className="flex justify-between items-center text-sm">
-              <span className="text-slate-600 dark:text-slate-400">Toss</span>
-              <span className="font-medium text-slate-900 dark:text-white capitalize">
-                {tossWinnerName} won ({tossData.decision})
-              </span>
-            </div>
-          </div>
+          <div className="flex flex-col gap-8 h-full">
 
           {/* Live Preview Card */}
           <LivePreviewCard 
@@ -204,21 +185,10 @@ export default function MatchSetup() {
                 <CheckCircle2 className="w-4 h-4" />
                 <span>Opening Bowler Selected</span>
               </li>
-              <li className={`flex items-center gap-2 transition-colors ${overs !== '' && Number(overs) > 0 ? 'text-brand-primary dark:text-brand-green' : 'text-slate-400'}`}>
-                <CheckCircle2 className="w-4 h-4" />
-                <span>Total Overs Selected</span>
-              </li>
             </ul>
           </div>
 
-          </div>
-
-        </div>
-
-        {/* Action Button Section */}
-        <div className="max-w-4xl w-full mx-auto px-4 pb-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div className="hidden lg:block"></div>
-          <div>
+          <div className="mt-auto">
             <Button 
               className="w-full shadow-lg"
               size="lg"
@@ -228,6 +198,9 @@ export default function MatchSetup() {
               🏏 Start Match
             </Button>
           </div>
+
+          </div>
+
         </div>
       </div>
 

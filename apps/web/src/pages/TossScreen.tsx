@@ -29,20 +29,21 @@ export default function TossScreen() {
   const [tossResult, setTossResult] = useState<'HEAD' | 'TAIL' | null>(null);
   const [tossWinner, setTossWinner] = useState<TossWinner>(null);
   const [decision, setDecision] = useState<TossDecision>(null);
+  const [overs, setOvers] = useState<number | ''>('');
 
   const teamOptions = [
     { id: 'A', label: sessionData.teamA },
     { id: 'B', label: sessionData.teamB }
   ];
 
-  const isComplete = tossResult && tossWinner && decision;
+  const isComplete = tossResult && tossWinner && decision && overs !== '' && Number(overs) > 0;
 
   const handleContinue = () => {
     if (!isComplete) return;
     navigate('/match-setup', { 
       state: { 
         sessionData, 
-        tossData: { result: tossResult, winner: tossWinner, decision }
+        tossData: { result: tossResult, winner: tossWinner, decision, overs }
       } 
     });
   };
@@ -81,6 +82,25 @@ export default function TossScreen() {
             </div>
           </div>
 
+          {/* Match Rules */}
+          <section className="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-sm border border-slate-200 dark:border-slate-800">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-xl">⏱️</span>
+              <h2 className="font-semibold text-slate-900 dark:text-white">Match Rules</h2>
+            </div>
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Total Overs</label>
+              <input 
+                type="number"
+                min="1"
+                placeholder="e.g. 20"
+                value={overs}
+                onChange={(e) => setOvers(e.target.value ? parseInt(e.target.value) : '')}
+                className="w-full p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:border-brand-primary/50 outline-none text-slate-900 dark:text-white transition-colors"
+              />
+            </div>
+          </section>
+
           {/* Coin Toss Section */}
           <section className="h-fit">
             <h2 className="text-sm font-semibold text-slate-900 dark:text-white mb-4 uppercase tracking-wider">Coin Toss</h2>
@@ -89,7 +109,7 @@ export default function TossScreen() {
           </div>
 
           {/* Right Column */}
-          <div className="flex flex-col gap-8">
+          <div className="flex flex-col gap-8 h-full">
 
           {/* Toss Winner */}
           <section className={`transition-opacity duration-300 ${!tossResult ? 'opacity-30 pointer-events-none' : 'opacity-100'}`}>
@@ -112,6 +132,7 @@ export default function TossScreen() {
             />
           </section>
 
+
           {/* Bottom Summary Card */}
           {isComplete && (
             <div className="bg-brand-primary/5 border border-brand-primary/20 rounded-xl p-4 flex flex-col gap-2">
@@ -131,19 +152,27 @@ export default function TossScreen() {
                   Chose to {decision === 'BAT' ? 'Bat' : 'Bowl'}
                 </span>
               </div>
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-slate-600 dark:text-slate-400">Total Overs</span>
+                <span className="font-medium text-slate-900 dark:text-white">
+                  {overs}
+                </span>
+              </div>
             </div>
           )}
 
           {/* Continue Button */}
           {isComplete && (
-            <Button 
-              className="w-full mt-4"
-              size="lg"
-              onClick={handleContinue}
-              disabled={!isComplete}
-            >
-              Continue →
-            </Button>
+            <div className="mt-auto">
+              <Button 
+                className="w-full shadow-lg mt-4"
+                size="lg"
+                onClick={handleContinue}
+                disabled={!isComplete}
+              >
+                Continue →
+              </Button>
+            </div>
           )}
           </div>
 
