@@ -90,9 +90,9 @@ export default function ScoringKeypad({
     }
 
     if (isDisabled) {
-      return `flex-1 transition-all text-white/50 rounded-2xl h-12 md:h-16 flex items-center justify-center bg-red-500/50 cursor-not-allowed`;
+      return `w-full transition-all text-white/50 rounded-2xl h-12 md:h-16 flex items-center justify-center bg-red-500/50 cursor-not-allowed`;
     }
-    return `flex-1 active:scale-95 transition-all text-white rounded-2xl h-12 md:h-16 flex items-center justify-center ${isSelected ? 'bg-red-500 ring-2 md:ring-4 ring-red-500 ring-offset-1 md:ring-offset-2 dark:ring-offset-slate-900' : 'bg-red-500 hover:bg-red-600'}`;
+    return `w-full active:scale-95 transition-all text-white rounded-2xl h-12 md:h-16 flex items-center justify-center ${isSelected ? 'bg-red-500 ring-2 md:ring-4 ring-red-500 ring-offset-1 md:ring-offset-2 dark:ring-offset-slate-900' : 'bg-red-500 hover:bg-red-600'}`;
   };
 
   return (
@@ -111,10 +111,61 @@ export default function ScoringKeypad({
         </div>
       </div>
 
+      {/* Actions & Controls Box */}
+      <div className="bg-white dark:bg-slate-900 rounded-3xl p-4 md:p-6 shadow-sm border border-slate-200 dark:border-slate-800 md:col-span-4 h-full flex flex-col">
+        <h3 className="text-[10px] md:text-xs font-semibold text-slate-500 uppercase tracking-widest mb-3 md:mb-4">Actions</h3>
+
+        <div className="grid grid-cols-2 gap-2 md:gap-4 mb-auto">
+          {/* Wickets Column */}
+          <div className="flex flex-col gap-2 md:gap-4">
+            <button
+              onClick={() => handleWicket('BOWLED')}
+              className={getWicketClass('BOWLED')}
+              disabled={isFreeHit || extraType === 'NO_BALL' || runs > 0}
+            >
+              <span className="text-sm md:text-xl font-bold tracking-widest">OUT</span>
+            </button>
+            <button
+              onClick={() => handleWicket('RUN_OUT')}
+              className={getWicketClass('RUN_OUT')}
+              disabled={runs === 4 || runs === 6}
+            >
+              <span className="text-sm md:text-xl font-bold tracking-widest">RUN OUT</span>
+            </button>
+            <button
+              onClick={() => handleWicket('RETIRED_OUT')}
+              className={getWicketClass('RETIRED_OUT')}
+            >
+              <span className="text-[11px] md:text-sm font-bold tracking-widest text-center leading-tight">RETIRED<br className="hidden lg:block xl:hidden"/> OUT</span>
+            </button>
+          </div>
+
+          {/* Controls Column */}
+          <div className="flex flex-col gap-2 md:gap-4">
+            <button onClick={onUndo} disabled={!canUndo} className={`bg-slate-200 dark:bg-slate-800 active:scale-95 transition-all text-slate-700 dark:text-slate-300 rounded-2xl h-12 md:h-16 flex items-center justify-center gap-1 md:gap-2 ${!canUndo && 'opacity-50 cursor-not-allowed'}`}>
+              <span className="text-lg leading-none">↺</span>
+              <span className="text-[10px] md:text-xs uppercase font-bold text-center leading-tight">Undo</span>
+            </button>
+            <button onClick={onChangeStrike} className="bg-slate-200 dark:bg-slate-800 active:scale-95 transition-all text-slate-700 dark:text-slate-300 rounded-2xl h-12 md:h-16 flex items-center justify-center gap-1 md:gap-2">
+              <span className="text-lg leading-none">⇄</span>
+              <span className="text-[10px] md:text-xs uppercase font-bold text-center leading-tight">Change<br/>Strike</span>
+            </button>
+            <button
+              onClick={() => alert('Development in progress')}
+              title="Development in progress"
+              className="bg-slate-200 dark:bg-slate-800 transition-all text-slate-700 dark:text-slate-300 rounded-2xl h-12 md:h-16 flex items-center justify-center gap-1 md:gap-2 opacity-50 cursor-not-allowed"
+            >
+              <span className="text-lg leading-none">🎳</span>
+              <span className="text-[10px] md:text-xs uppercase font-bold text-center leading-tight">Change<br/>Bowler</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* Extras Box */}
-      <div className="bg-white dark:bg-slate-900 rounded-3xl p-4 md:p-6 shadow-sm border border-slate-200 dark:border-slate-800 md:col-span-3 h-full">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl p-4 md:p-6 shadow-sm border border-slate-200 dark:border-slate-800 md:col-span-3 h-full flex flex-col">
         <h3 className="text-[10px] md:text-xs font-semibold text-slate-500 uppercase tracking-widest mb-3 md:mb-4">Extras</h3>
-        <div className="grid grid-cols-4 md:grid-cols-2 gap-2 md:gap-4">
+        <div className="grid grid-cols-4 md:grid-cols-2 gap-2 md:gap-4 mb-auto">
           <button onClick={() => handleExtra('WIDE')} className={getExtraClass('WIDE')}>
             <span className="font-bold text-inherit">WD</span>
           </button>
@@ -128,41 +179,6 @@ export default function ScoringKeypad({
             <span className="font-bold text-inherit">LB</span>
           </button>
         </div>
-      </div>
-
-      {/* Actions & Controls Box */}
-      <div className="bg-white dark:bg-slate-900 rounded-3xl p-4 md:p-6 shadow-sm border border-slate-200 dark:border-slate-800 md:col-span-4 h-full flex flex-col">
-        <h3 className="text-[10px] md:text-xs font-semibold text-slate-500 uppercase tracking-widest mb-3 md:mb-4">Actions</h3>
-
-        {/* Wickets */}
-        <div className="flex gap-2 md:gap-4 mb-3 md:mb-4">
-          <button
-            onClick={() => handleWicket('BOWLED')}
-            className={getWicketClass('BOWLED')}
-            disabled={isFreeHit || extraType === 'NO_BALL' || runs > 0}
-          >
-            <span className="text-sm md:text-xl font-bold tracking-widest">OUT</span>
-          </button>
-          <button
-            onClick={() => handleWicket('RUN_OUT')}
-            className={getWicketClass('RUN_OUT')}
-            disabled={runs === 4 || runs === 6}
-          >
-            <span className="text-sm md:text-xl font-bold tracking-widest">RUN OUT</span>
-          </button>
-        </div>
-
-        {/* Action Grid */}
-        <div className="grid grid-cols-2 gap-2 md:gap-4 mb-auto">
-          <button onClick={onUndo} disabled={!canUndo} className={`bg-slate-200 dark:bg-slate-800 active:scale-95 transition-all text-slate-700 dark:text-slate-300 rounded-2xl h-12 md:h-14 flex items-center justify-center gap-2 ${!canUndo && 'opacity-50 cursor-not-allowed'}`}>
-            <span className="text-lg">↺</span>
-            <span className="text-xs uppercase font-bold">Undo</span>
-          </button>
-          <button onClick={onChangeStrike} className="bg-slate-200 dark:bg-slate-800 active:scale-95 transition-all text-slate-700 dark:text-slate-300 rounded-2xl h-12 md:h-14 flex items-center justify-center gap-2">
-            <span className="text-lg">⇄</span>
-            <span className="text-[10px] md:text-xs uppercase font-bold text-center leading-tight">Change<br/>Strike</span>
-          </button>
-        </div>
 
         {/* Match Controls */}
         <div className="flex gap-2 md:gap-4 mt-4 md:mt-6 pt-4 md:pt-6 border-t border-slate-100 dark:border-slate-800">
@@ -173,7 +189,6 @@ export default function ScoringKeypad({
             Record Ball
           </button>
         </div>
-
       </div>
     </div>
   );
