@@ -8,13 +8,13 @@ import { CopyButton } from '../../../components/ui/CopyButton';
 import { ArrowRight } from 'lucide-react';
 import { SessionSetupStepProps } from '../types';
 
-export const SessionSetupStep: React.FC<SessionSetupStepProps> = ({ onNext, sessionCode }) => {
+export const SessionSetupStep: React.FC<SessionSetupStepProps> = ({ onNext, sessionCode, isLoading }) => {
   const { register, formState: { errors }, trigger } = useFormContext();
 
   const handleNext = async () => {
     const isStepValid = await trigger(['sessionName', 'teamA', 'teamB']);
     if (isStepValid) {
-      onNext();
+      await onNext();
     }
   };
 
@@ -61,7 +61,7 @@ export const SessionSetupStep: React.FC<SessionSetupStepProps> = ({ onNext, sess
         </div>
 
         <div className="flex justify-end pt-4">
-          <Button onClick={handleNext} type="button" className="group">
+          <Button onClick={handleNext} type="button" className="group" isLoading={isLoading}>
             Next
             <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </Button>

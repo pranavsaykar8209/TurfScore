@@ -4,10 +4,12 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
+import toast from 'react-hot-toast';
 
 import { Stepper, SessionSetupStep, AddPlayersStep, ReviewStep } from '../features/create-session/components';
 import { Navbar } from '../components/shared';
 import homeContent from '../data/home.json';
+import { sessionService } from '../services/session.service';
 
 // Validation Schema
 const sessionSchema = z.object({
@@ -58,25 +60,49 @@ export default function CreateSession() {
     }
   });
 
-  // Generate a mock session code on mount
+  const [isCreated, setIsCreated] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
   useEffect(() => {
+    // Generate a mock session code on mount so the user sees it immediately
     const code = Math.random().toString(36).substring(2, 8).toUpperCase();
     const formattedCode = code.split('').join(' ');
     setSessionCode(formattedCode);
   }, []);
 
-  const handleNext = () => {
-    setCurrentStep((prev) => Math.min(prev + 1, 3));
+  const handleNext = async () => {
+    if (currentStep === 1) {
+      const sessionName = methods.getValues('sessionName');
+      const rawCode = sessionCode.replace(/\s+/g, '');
+      try {
+        setIsLoading(true);
+        if (!isCreated) {
+          await sessionService.createSession({ sessionCode: rawCode, sessionName });
+          setIsCreated(true);
+          toast.success('Session created successfully!');
+        } else {
+          await sessionService.updateSession(rawCode, { sessionName });
+          toast.success('Session updated successfully!');
+        }
+        setCurrentStep(2);
+      } catch (error) {
+        console.error('Failed to create/update session:', error);
+        toast.error('Failed to save session.');
+      } finally {
+        setIsLoading(false);
+      }
+    } else {
+      setCurrentStep((prev) => Math.min(prev + 1, 3));
+    }
   };
+
 
   const handleBack = () => {
     setCurrentStep((prev) => Math.max(prev - 1, 1));
   };
 
   const onSubmit = async (data: SessionFormData) => {
-    console.log('Session Created:', { ...data, sessionCode });
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // Session is already created/updated on Next button.
     navigate('/toss', { state: { sessionData: data, sessionCode } });
   };
 
@@ -108,6 +134,7 @@ export default function CreateSession() {
                   key="step1" 
                   onNext={handleNext} 
                   sessionCode={sessionCode} 
+                  isLoading={isLoading}
                 />
               )}
               {currentStep === 2 && (

@@ -35,8 +35,9 @@ export interface AddPlayersStepProps {
 }
 
 export interface SessionSetupStepProps {
-  onNext: () => void;
+  onNext: () => void | Promise<void>;
   sessionCode: string;
+  isLoading?: boolean;
 }
 
 export interface PlayerCardProps {

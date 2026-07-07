@@ -5,6 +5,7 @@ import CreateSession from './pages/CreateSession';
 import TossScreen from './pages/TossScreen';
 import MatchSetup from './pages/MatchSetup';
 import LiveScoring from './features/live-scoring/LiveScoringPage';
+import { Toaster } from './components/ui';
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
         <Route path="/match-setup" element={<MatchSetup />} />
         <Route path="/live-scoring" element={<LiveScoring />} />
       </Routes>
+      <Toaster />
     </BrowserRouter>
   );
 }
