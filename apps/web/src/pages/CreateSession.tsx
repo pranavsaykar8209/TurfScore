@@ -10,6 +10,7 @@ import { Stepper, SessionSetupStep, AddPlayersStep, ReviewStep } from '../featur
 import { Navbar } from '../components/shared';
 import homeContent from '../data/home.json';
 import { sessionService } from '../services/session.service';
+import { teamService } from '../services/team.service';
 
 // Validation Schema
 const sessionSchema = z.object({
@@ -73,16 +74,29 @@ export default function CreateSession() {
   const handleNext = async () => {
     if (currentStep === 1) {
       const sessionName = methods.getValues('sessionName');
+      const teamAName = methods.getValues('teamA');
+      const teamBName = methods.getValues('teamB');
       const rawCode = sessionCode.replace(/\s+/g, '');
       try {
         setIsLoading(true);
         if (!isCreated) {
           await sessionService.createSession({ sessionCode: rawCode, sessionName });
+          
+          await teamService.createTeam(rawCode, { teamName: teamAName });
+          await teamService.createTeam(rawCode, { teamName: teamBName });
+
           setIsCreated(true);
-          toast.success('Session created successfully!');
+          toast.success('Session & Teams created successfully!');
         } else {
           await sessionService.updateSession(rawCode, { sessionName });
-          toast.success('Session updated successfully!');
+          
+          const teams = await teamService.getTeams(rawCode);
+          if (teams && teams.length >= 2) {
+            await teamService.updateTeam(teams[0].teamId, { teamName: teamAName });
+            await teamService.updateTeam(teams[1].teamId, { teamName: teamBName });
+          }
+          
+          toast.success('Session & Teams updated successfully!');
         }
         setCurrentStep(2);
       } catch (error) {
