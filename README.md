@@ -5,7 +5,7 @@
 
 **TurfScore** is a modern, intuitive, and dynamic web application designed for creating cricket sessions and live scoring matches. With a seamless user interface and real-time interactions, TurfScore makes it effortless to track match progress, manage teams, and monitor live games straight from your browser.
 
-🌐 **Live Demo:** [TurfScore on Vercel](https://turf-score-web.vercel.app/live-scoring)
+🌐 **Live Demo:** [TurfScore on Vercel](https://turf-score-web.vercel.app)
 
 ---
 
