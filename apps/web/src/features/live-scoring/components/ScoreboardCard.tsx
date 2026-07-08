@@ -13,6 +13,11 @@ export default function ScoreboardCard({ battingTeamName, bowlingTeamName, match
   // Calculate overs decimal (e.g. 16 overs and 2 balls = 16.2)
   const oversDecimal = `${currentOver}.${currentBall}`;
 
+  // Target calculations
+  const runsNeeded = target ? Math.max(0, target - totalRuns) : 0;
+  const ballsRemaining = target ? Math.max(0, (totalOvers * 6) - (currentOver * 6 + currentBall)) : 0;
+  const requiredRunRate = ballsRemaining > 0 ? ((runsNeeded / ballsRemaining) * 6).toFixed(1) : '0.0';
+
   return (
     <div className="bg-white dark:bg-slate-900 rounded-3xl p-4 md:p-8 shadow-sm border border-slate-200 dark:border-slate-800 relative overflow-hidden">
       {/* Decorative Blur */}
@@ -72,11 +77,18 @@ export default function ScoreboardCard({ battingTeamName, bowlingTeamName, match
           </div>
 
           {target && (
-            <div className="flex flex-col items-start bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700/50">
-              <span className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">Target</span>
-              <span className="text-2xl font-bold text-slate-900 dark:text-white">{target}</span>
-              <div className="mt-1 flex items-center text-xs font-bold text-brand-primary bg-brand-primary/10 px-2 py-1 rounded-md">
-                Need {Math.max(0, target - totalRuns)} runs in {Math.max(0, (totalOvers * 6) - (currentOver * 6 + currentBall))} balls
+            <div className="flex flex-col bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700/50 w-max ml-4">
+              <div className="flex justify-between items-start w-full gap-6">
+                <div className="flex flex-col items-start">
+                  <span className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">Target</span>
+                  <span className="text-3xl font-bold text-slate-900 dark:text-white leading-none">{target}</span>
+                </div>
+                <div className="flex items-center text-sm font-bold text-slate-600 dark:text-slate-400 bg-slate-200 dark:bg-slate-800 px-2 py-1 rounded-md">
+                  RR: {requiredRunRate}
+                </div>
+              </div>
+              <div className="mt-4 flex items-center justify-center w-full text-sm font-bold text-brand-primary bg-brand-primary/10 px-3 py-2 rounded-lg">
+                Need {runsNeeded} runs in {ballsRemaining} balls
               </div>
             </div>
           )}
@@ -122,9 +134,12 @@ export default function ScoreboardCard({ battingTeamName, bowlingTeamName, match
         )}
 
         {target && (
-          <div className="mt-3 flex items-center justify-center gap-2 text-xs">
+          <div className="mt-3 flex flex-col items-center justify-center gap-1.5 text-xs">
             <span className="font-bold text-slate-900 dark:text-white">Target: {target}</span>
-            <span className="font-bold text-brand-primary">Need {Math.max(0, target - totalRuns)} in {Math.max(0, (totalOvers * 6) - (currentOver * 6 + currentBall))}</span>
+            <div className="flex items-center justify-center gap-2">
+              <span className="font-bold text-brand-primary bg-brand-primary/10 px-2 py-0.5 rounded-md">Need {runsNeeded} in {ballsRemaining}</span>
+              <span className="font-bold text-slate-600 dark:text-slate-400 bg-slate-200 dark:bg-slate-800 px-2 py-0.5 rounded-md">RR: {requiredRunRate}</span>
+            </div>
           </div>
         )}
       </div>

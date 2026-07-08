@@ -13,7 +13,7 @@ export const PlayerList: React.FC<PlayerListProps> = ({ teamId, teamName, player
       <div className="flex items-center justify-between border-b border-slate-200 dark:border-white/10 pb-3">
         <div className="flex items-center gap-2">
           <div className={`w-2.5 h-2.5 rounded-full ${isTeamA ? 'bg-brand-green shadow-[0_0_8px_rgba(184,255,26,0.5)]' : 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]'}`} />
-          <h3 className="font-semibold text-slate-900 dark:text-white">
+          <h3 className="font-semibold text-slate-900 dark:text-white capitalize">
             {teamName || `Team ${teamId}`}
           </h3>
         </div>

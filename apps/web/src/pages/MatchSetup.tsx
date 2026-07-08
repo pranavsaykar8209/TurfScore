@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { CheckCircle2, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Button } from '@/components/ui';
@@ -38,8 +38,10 @@ const MOCK_DATA = {
 export default function MatchSetup() {
   const navigate = useNavigate();
   const location = useLocation();
+  const params = useParams();
   
-  const { sessionData, tossData, sessionCode } = location.state || MOCK_DATA;
+  const { sessionData, tossData } = location.state || MOCK_DATA;
+  const sessionCode = location.state?.sessionCode || params.sessionCode;
   
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -71,8 +73,8 @@ export default function MatchSetup() {
     setIsSubmitting(true);
     try {
       let matchId = null;
-      if (sessionCode) {
-        const rawSessionCode = sessionCode.replace(/\s+/g, '');
+      const rawSessionCode = sessionCode ? sessionCode.replace(/\s+/g, '') : '';
+      if (rawSessionCode) {
         const teams = await teamService.getTeams(rawSessionCode);
         const teamARecord = teams.find((t: any) => t.teamName === sessionData.teamA);
         const teamBRecord = teams.find((t: any) => t.teamName === sessionData.teamB);
@@ -93,10 +95,10 @@ export default function MatchSetup() {
       
       toast.success('Match started successfully!');
       
-      navigate('/live-scoring', {
+      navigate(`/session/${rawSessionCode}/match/${matchId}/live-scoring`, {
         state: {
           sessionData,
-          sessionCode: sessionCode.replace(/\s+/g, ''),
+          sessionCode: rawSessionCode,
           tossData,
           matchSetup: { striker, nonStriker, bowler, overs: tossData.overs },
           matchId,

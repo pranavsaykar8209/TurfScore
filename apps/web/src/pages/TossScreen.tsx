@@ -1,10 +1,14 @@
-import { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation, useParams } from 'react-router-dom';
+import { Loader2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { Button } from '@/components/ui';
 import { Navbar } from '../components/shared';
 import homeContent from '../data/home.json';
 import { CoinToss, SegmentedControl, DecisionCards } from '../features/match-setup/components';
 import { type TossWinner, type TossDecision } from '../features/match-setup/types';
+import { sessionService } from '../services/session.service';
+import { playerService } from '../services/player.service';
 
 // Mock session data for development if accessed directly
 const MOCK_SESSION_DATA = {
@@ -22,14 +26,60 @@ const MOCK_SESSION_DATA = {
 export default function TossScreen() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { sessionCode } = useParams();
   
-  // Get session data from router state, or use mock data
-  const sessionData = location.state?.sessionData || MOCK_SESSION_DATA;
-  
+  const [sessionData, setSessionData] = useState<any>(location.state?.sessionData || null);
+  const [isLoading, setIsLoading] = useState(!location.state?.sessionData);
+
+  useEffect(() => {
+    const fetchSessionData = async () => {
+      if (!sessionCode || sessionData) return;
+      try {
+        const rawCode = sessionCode.replace(/\s+/g, '');
+        const dashboard = await sessionService.getSessionDashboard(rawCode);
+        const players = await playerService.getPlayers(rawCode);
+        
+        if (dashboard && dashboard.teams && dashboard.teams.length >= 2) {
+          const teamA = dashboard.teams[0];
+          const teamB = dashboard.teams[1];
+          
+          setSessionData({
+            sessionName: dashboard.sessionName,
+            teamA: teamA.teamName,
+            teamB: teamB.teamName,
+            players: players.map((p: any) => ({
+              id: p.playerId.toString(),
+              name: p.playerName,
+              team: p.teamId === teamA.teamId ? 'A' : 'B'
+            }))
+          });
+        }
+      } catch (error) {
+        console.error('Failed to fetch session data:', error);
+        toast.error('Failed to load session details.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchSessionData();
+  }, [sessionCode, sessionData]);
+
   const [tossResult, setTossResult] = useState<'HEAD' | 'TAIL' | null>(null);
   const [tossWinner, setTossWinner] = useState<TossWinner>(null);
   const [decision, setDecision] = useState<TossDecision>(null);
   const [overs, setOvers] = useState<number | ''>('');
+
+  if (isLoading || !sessionData) {
+    return (
+      <div className="min-h-screen bg-brand-light dark:bg-brand-dark flex flex-col">
+        <Navbar data={homeContent.navbar} />
+        <div className="flex-1 flex justify-center items-center">
+          <Loader2 className="w-8 h-8 animate-spin text-brand-green" />
+        </div>
+      </div>
+    );
+  }
 
   const teamOptions = [
     { id: 'A', label: sessionData.teamA },
@@ -40,10 +90,10 @@ export default function TossScreen() {
 
   const handleContinue = () => {
     if (!isComplete) return;
-    navigate('/match-setup', { 
+    navigate(`/session/${sessionCode}/match-setup`, { 
       state: { 
         sessionData,
-        sessionCode: location.state?.sessionCode,
+        sessionCode,
         tossData: { result: tossResult, winner: tossWinner, decision, overs }
       } 
     });

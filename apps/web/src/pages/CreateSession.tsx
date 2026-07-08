@@ -150,7 +150,7 @@ export default function CreateSession() {
   const onSubmit = async (data: SessionFormData) => {
     // Session is already created/updated on Next button.
     const rawCode = sessionCode.replace(/\s+/g, '');
-    navigate('/toss', { state: { sessionData: data, sessionCode: rawCode } });
+    navigate(`/session/${rawCode}/toss`, { state: { sessionData: data, sessionCode: rawCode } });
   };
 
   return (
