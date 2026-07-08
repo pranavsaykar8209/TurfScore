@@ -32,6 +32,7 @@ export interface EmptyStateProps {
 export interface AddPlayersStepProps {
   onNext: () => void;
   onBack: () => void;
+  isLoading?: boolean;
 }
 
 export interface SessionSetupStepProps {

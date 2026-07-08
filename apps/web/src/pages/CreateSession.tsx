@@ -11,6 +11,7 @@ import { Navbar } from '../components/shared';
 import homeContent from '../data/home.json';
 import { sessionService } from '../services/session.service';
 import { teamService } from '../services/team.service';
+import { playerService } from '../services/player.service';
 
 // Validation Schema
 const sessionSchema = z.object({
@@ -105,6 +106,37 @@ export default function CreateSession() {
       } finally {
         setIsLoading(false);
       }
+    } else if (currentStep === 2) {
+      const players = methods.getValues('players');
+      const rawCode = sessionCode.replace(/\s+/g, '');
+      try {
+        setIsLoading(true);
+        const teams = await teamService.getTeams(rawCode);
+        const teamA = teams[0];
+        const teamB = teams[1];
+
+        if (teams.length >= 2) {
+          const playersToSync = players.map(p => ({
+            teamId: p.team === 'A' ? teamA.teamId : teamB.teamId,
+            playerName: p.name
+          }));
+
+          const syncedPlayers = await playerService.syncPlayers(rawCode, playersToSync);
+
+          const newPlayers = players.map((p, index) => ({
+            ...p,
+            id: syncedPlayers[index].playerId.toString()
+          }));
+          methods.setValue('players', newPlayers);
+        }
+
+        setCurrentStep(3);
+      } catch (error) {
+        console.error('Failed to sync players:', error);
+        toast.error('Failed to save players.');
+      } finally {
+        setIsLoading(false);
+      }
     } else {
       setCurrentStep((prev) => Math.min(prev + 1, 3));
     }
@@ -156,6 +188,7 @@ export default function CreateSession() {
                   key="step2" 
                   onNext={handleNext} 
                   onBack={handleBack} 
+                  isLoading={isLoading}
                 />
               )}
               {currentStep === 3 && (

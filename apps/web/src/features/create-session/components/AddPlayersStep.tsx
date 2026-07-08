@@ -8,7 +8,7 @@ import { Card } from '../../../components/ui/Card';
 import { PlayerList } from './PlayerList';
 import { AddPlayersStepProps } from '../types';
 
-export const AddPlayersStep: React.FC<AddPlayersStepProps> = ({ onNext, onBack }) => {
+export const AddPlayersStep: React.FC<AddPlayersStepProps> = ({ onNext, onBack, isLoading }) => {
   const { setValue, trigger, formState: { errors } } = useFormContext();
   const [playerName, setPlayerName] = useState('');
   const [selectedTeam, setSelectedTeam] = useState<'A' | 'B'>('A');
@@ -143,9 +143,9 @@ export const AddPlayersStep: React.FC<AddPlayersStepProps> = ({ onNext, onBack }
             <ArrowLeft className="w-4 h-4" />
             Back
           </Button>
-          <Button onClick={handleNextClick} type="button" className="group">
-            Next
-            <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          <Button onClick={handleNextClick} type="button" className="group" disabled={isLoading}>
+            {isLoading ? 'Saving...' : 'Next'}
+            {!isLoading && <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />}
           </Button>
         </div>
       </Card>
