@@ -1,18 +1,19 @@
-Implement Feature 4: Matches (Backend + Frontend Integration)
+Implement Feature 5: Innings (Backend + Frontend Integration)
 
 Context:
 - Read `docs/architecture/DatabaseStructure.md`
 - Read `docs/api/product-spec.md`
-- Read `docs/api/matches.md`
+- Read `docs/api/05-innings.md`
+- Read `apps/api/src/db/schema/innings.ts`
 - The database schema and Drizzle setup are already complete.
 - Do not redesign the database or architecture.
 
 Scope
 
 Backend:
-- Implement only the Matches module.
+- Implement only the Innings module.
 - Create routes, controller, service, repository, validation, and types.
-- Implement only the APIs defined in product-spec.md and matches.md.
+- Implement only the APIs defined in product-spec.md and 05-innings.md.
 - Use Drizzle ORM.
 - Use transactions where appropriate.
 - Add proper validation and error handling.
@@ -35,7 +36,7 @@ Rules:
 - Do not implement Live Scoring or any other feature.
 - Do not implement frontend for features that are not yet available in the UI.
 - Do not add placeholder pages or temporary UI.
-- Stop after the Matches feature is complete.
+- Stop after the Innings feature is complete.
 
 Deliverables:
 1. Backend implementation.

@@ -51,6 +51,19 @@ export const getMatch = async (req: Request, res: Response) => {
   }
 };
 
+export const getLiveScoringData = async (req: Request, res: Response) => {
+  try {
+    const { matchId } = req.params;
+    const data = await matchService.getLiveScoringData(parseInt(matchId));
+    res.status(200).json(data);
+  } catch (error: any) {
+    if (error.message === 'Match not found') {
+      return res.status(404).json({ error: error.message });
+    }
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
 export const updateMatch = async (req: Request, res: Response) => {
   try {
     const { matchId } = req.params;

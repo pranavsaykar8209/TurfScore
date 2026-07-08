@@ -9,6 +9,7 @@ import { SearchableSelect, LivePreviewCard } from '../features/match-setup/compo
 import { type PlayerSelection } from '../features/match-setup/types';
 import { matchService } from '../services/match.service';
 import { teamService } from '../services/team.service';
+import { inningsService } from '../services/innings.service';
 
 // Mock data fallback
 const MOCK_DATA = {
@@ -91,6 +92,15 @@ export default function MatchSetup() {
           tossDecision: tossData.decision.toLowerCase() as 'bat' | 'bowl',
         });
         matchId = match.matchId;
+        
+        // Start first innings right after creating the match
+        const innings = await inningsService.startFirstInnings(matchId);
+        await inningsService.updateInnings(innings.inningId, {
+          currentStrikerId: striker ? parseInt(striker.id) : null,
+          currentNonStrikerId: nonStriker ? parseInt(nonStriker.id) : null,
+          currentBowlerId: bowler ? parseInt(bowler.id) : null,
+          currentOverNumber: 0,
+        });
       }
       
       toast.success('Match started successfully!');

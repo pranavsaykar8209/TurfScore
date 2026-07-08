@@ -62,6 +62,58 @@ export class MatchService {
     return match;
   }
 
+  async getLiveScoringData(matchId: number) {
+    const match = await this.matchRepository.getLiveScoringData(matchId);
+    if (!match) {
+      throw new Error('Match not found');
+    }
+
+    const players = [
+      ...match.teamA.players.map(p => ({
+        id: p.playerId.toString(),
+        name: p.playerName,
+        team: 'A'
+      })),
+      ...match.teamB.players.map(p => ({
+        id: p.playerId.toString(),
+        name: p.playerName,
+        team: 'B'
+      }))
+    ];
+
+    const currentInnings = match.innings.find(i => i.inningNumber === match.currentInning) || null;
+
+    let striker = null;
+    let nonStriker = null;
+    let bowler = null;
+
+    if (currentInnings) {
+      striker = players.find(p => p.id === currentInnings.currentStrikerId?.toString()) || null;
+      nonStriker = players.find(p => p.id === currentInnings.currentNonStrikerId?.toString()) || null;
+      bowler = players.find(p => p.id === currentInnings.currentBowlerId?.toString()) || null;
+    }
+
+    return {
+      sessionData: {
+        sessionName: match.session.sessionName,
+        teamA: match.teamA.teamName,
+        teamB: match.teamB.teamName,
+        players
+      },
+      tossData: {
+        winner: match.tossWinnerTeamId === match.teamAId ? 'A' : 'B',
+        decision: match.tossDecision?.toUpperCase() || 'BAT'
+      },
+      matchSetup: {
+        overs: match.oversPerInnings,
+        striker,
+        nonStriker,
+        bowler,
+      },
+      currentInningsData: currentInnings
+    };
+  }
+
   async updateMatch(matchId: number, data: UpdateMatchDto) {
     const match = await this.matchRepository.findById(matchId);
     if (!match) {

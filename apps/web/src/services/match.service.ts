@@ -36,6 +36,11 @@ export const matchService = {
     return response.data;
   },
 
+  getLiveScoringData: async (matchId: number) => {
+    const response = await api.get(`/matches/${matchId}/live-scoring`);
+    return response.data;
+  },
+
   updateMatch: async (matchId: number, data: UpdateMatchData) => {
     const response = await api.patch(`/matches/${matchId}`, data);
     return response.data;

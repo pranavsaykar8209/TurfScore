@@ -1,195 +1,64 @@
-import { useLocation, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
-import { useMatchState } from './hooks/useMatchState';
-import {
-
-  ScoreboardCard,
-  PlayersActiveCard,
-  CurrentOverTracker,
-  ScoringKeypad,
-  PlayerSelectionModal,
-  InningsCompleteModal,
-  MatchCompleteModal,
-  OpeningBatsmenSelectionModal,
-} from './components';
-
-import { Navbar } from '@/components/shared';
-import homeContent from '@/data/home.json';
+import { useLocation, useParams } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { LiveScoringBoard } from './components';
+import { matchService } from '../../services/match.service';
+import { sessionService } from '../../services/session.service';
+import { inningsService } from '../../services/innings.service';
+import { Loader2 } from 'lucide-react';
 
 export default function LiveScoringPage() {
+  const { sessionCode, matchId } = useParams<{ sessionCode: string, matchId: string }>();
   const location = useLocation();
-  const navigate = useNavigate();
   const routeState = location.state;
 
-  // Fallback for direct navigation without state
-  const sessionData = routeState?.sessionData || { sessionName: 'Local Match', teamA: 'Team A', teamB: 'Team B' };
-  const tossData = routeState?.tossData || { winner: 'A', decision: 'BAT' };
-  const matchSetup = routeState?.matchSetup || { striker: null, nonStriker: null, bowler: null, overs: 20 };
+  const [isLoading, setIsLoading] = useState(!routeState);
+  const [data, setData] = useState<any>(null);
+  const [error, setError] = useState('');
 
-  const isTeamAInitialBatting = 
-    (tossData.winner === 'A' && tossData.decision === 'BAT') ||
-    (tossData.winner === 'B' && tossData.decision === 'BOWL');
-
-  // We can't use matchState yet because it's not initialized. Wait, hooks can't be conditional.
-  // We need to use `matchState` to derive batting team. We can initialize `useMatchState` first.
-
-  const {
-    state: matchState,
-    addDelivery,
-    undo,
-    changeStrike,
-    setNewBatsman,
-    setNewBowler,
-    startSecondInnings,
-    canUndo,
-  } = useMatchState({
-    striker: matchSetup.striker,
-    nonStriker: matchSetup.nonStriker,
-    currentBowler: matchSetup.bowler,
-  }, {
-    totalOvers: matchSetup.overs,
-    teamSize: (sessionData.players?.length || 2) / 2
-  });
-
-  const currentBattingTeamIsA = matchState.innings === 1 ? isTeamAInitialBatting : !isTeamAInitialBatting;
-
-  const battingTeamName = currentBattingTeamIsA ? sessionData.teamA : sessionData.teamB;
-  const bowlingTeamName = currentBattingTeamIsA ? sessionData.teamB : sessionData.teamA;
-
-  const battingTeamId = currentBattingTeamIsA ? 'A' : 'B';
-  const bowlingTeamId = currentBattingTeamIsA ? 'B' : 'A';
-
-  const battingPlayers = sessionData.players?.filter((p: { team: string }) => p.team === battingTeamId) || [];
-  const bowlingPlayers = sessionData.players?.filter((p: { team: string }) => p.team === bowlingTeamId) || [];
-
-  const [setupStep, setSetupStep] = useState<'NONE' | 'BATSMEN' | 'BOWLER'>('NONE');
-  const [secondInningsData, setSecondInningsData] = useState<any>({});
-
-  const [showStrikeWarning, setShowStrikeWarning] = useState(false);
-
-  const handleSetNewBatsman = (player: import('../match-setup/types').PlayerSelection, outPlayerId?: string) => {
-    if (matchState.pendingWicketType === 'RUN_OUT') {
-      setShowStrikeWarning(true);
-      setTimeout(() => setShowStrikeWarning(false), 5000);
-    }
-    setNewBatsman(player, outPlayerId);
-  };
-
-  const handleStartSecondInnings = () => {
-    setSetupStep('BATSMEN');
-  };
-
-  const handleSecondInningsBatsmenSelection = (striker: import('../match-setup/types').PlayerSelection, nonStriker: import('../match-setup/types').PlayerSelection) => {
-    setSecondInningsData({ ...secondInningsData, striker, nonStriker });
-    setSetupStep('BOWLER');
-  };
-
-  const handleSecondInningsBowlerSelection = (bowler: import('../match-setup/types').PlayerSelection) => {
-    startSecondInnings({
-      ...secondInningsData,
-      bowler
-    });
-    setSetupStep('NONE');
-    setSecondInningsData({});
-  };
-
-  const isScoringDisabled = matchState.isInningsComplete || matchState.isMatchComplete;
-
-  return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col font-sans pb-12 pt-32 relative">
-      <Navbar data={homeContent.navbar} />
-
-      <div className="max-w-5xl w-full mx-auto px-4 mt-4 lg:mt-6 flex flex-col gap-4 lg:gap-6">
+  useEffect(() => {
+    const loadData = async () => {
+      if (!sessionCode || !matchId) return;
+      try {
+        setIsLoading(true);
         
-        {/* Top: Scoreboard */}
-        <ScoreboardCard 
-          battingTeamName={battingTeamName}
-          bowlingTeamName={bowlingTeamName}
-          matchState={matchState}
-          totalOvers={matchSetup.overs}
-        />
+        // Single API call that fetches all necessary hydration data
+        const liveData = await matchService.getLiveScoringData(parseInt(matchId));
 
-        {/* Middle section: Active Players & Over Tracker */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
-          <div className="lg:col-span-4">
-            <PlayersActiveCard matchState={matchState} highlightStrikeChange={showStrikeWarning} />
-          </div>
-          <div className="hidden lg:block lg:col-span-8">
-            <CurrentOverTracker matchState={matchState} />
-          </div>
-        </div>
+        setData({
+          ...liveData,
+          matchId: parseInt(matchId),
+          initialInningsData: liveData.currentInningsData
+        });
 
-        {/* Bottom section: Keypad & Controls */}
-        <div className="grid grid-cols-1 gap-4 lg:gap-6">
-          <div className="col-span-1">
-            <ScoringKeypad 
-              onAddDelivery={isScoringDisabled ? () => {} : addDelivery}
-              onUndo={isScoringDisabled ? () => {} : undo}
-              onChangeStrike={isScoringDisabled ? () => {} : changeStrike}
-              canUndo={canUndo && !isScoringDisabled}
-              isFreeHit={matchState.isFreeHit}
-            />
-          </div>
+      } catch (err) {
+        console.error('Failed to load match data', err);
+        setError('Failed to load match data');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadData();
+  }, [sessionCode, matchId, routeState]);
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 font-sans">
+        <div className="text-center p-8 bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-red-100 dark:border-red-900/30">
+           <h2 className="text-xl font-bold text-red-500 mb-2">Error</h2>
+           <p className="text-slate-600 dark:text-slate-400">{error}</p>
         </div>
       </div>
+    );
+  }
 
-      {matchState.needsNewBatsman && (
-        <PlayerSelectionModal 
-          type="BATSMAN"
-          options={battingPlayers.filter((p: { id: string }) => !matchState.outPlayers?.includes(p.id))}
-          currentStriker={matchState.striker}
-          currentNonStriker={matchState.nonStriker}
-          disabledOptionIds={[
-            matchState.striker?.id || '',
-            matchState.nonStriker?.id || ''
-          ].filter(Boolean)}
-          pendingWicketType={matchState.pendingWicketType}
-          onSubmit={handleSetNewBatsman}
-        />
-      )}
+  if (isLoading || !data) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
+        <Loader2 className="w-8 h-8 text-brand-primary animate-spin" />
+      </div>
+    );
+  }
 
-      {!matchState.needsNewBatsman && matchState.needsNewBowler && (
-        <PlayerSelectionModal
-          type="BOWLER"
-          options={bowlingPlayers}
-          disabledOptionIds={[matchState.currentBowler?.id || '']}
-          onSubmit={(player) => setNewBowler(player)}
-        />
-      )}
-
-      {matchState.isInningsComplete && matchState.innings === 1 && setupStep === 'NONE' && (
-        <InningsCompleteModal
-          matchState={matchState}
-          onStartSecondInnings={handleStartSecondInnings}
-        />
-      )}
-
-      {setupStep === 'BATSMEN' && (
-        <OpeningBatsmenSelectionModal
-          options={bowlingPlayers}
-          onSubmit={handleSecondInningsBatsmenSelection}
-        />
-      )}
-
-      {setupStep === 'BOWLER' && (
-        <PlayerSelectionModal
-          key={setupStep}
-          title="Select Opening Bowler"
-          type="BOWLER"
-          options={battingPlayers}
-          onSubmit={handleSecondInningsBowlerSelection}
-        />
-      )}
-
-      {matchState.isMatchComplete && (
-        <MatchCompleteModal
-          matchState={matchState}
-          battingTeamName={battingTeamName}
-          bowlingTeamName={bowlingTeamName}
-          onViewDashboard={() => navigate('/')}
-        />
-      )}
-
-    </div>
-  );
+  return <LiveScoringBoard {...data} />;
 }

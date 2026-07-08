@@ -46,8 +46,25 @@ export class MatchRepository {
     return match;
   }
 
-  async update(matchId: number, data: UpdateMatchDto) {
-    const [updatedMatch] = await db
+  async getLiveScoringData(matchId: number) {
+    const match = await db.query.matches.findFirst({
+      where: eq(matches.matchId, matchId),
+      with: {
+        session: true,
+        teamA: {
+          with: { players: true }
+        },
+        teamB: {
+          with: { players: true }
+        },
+        innings: true
+      }
+    });
+    return match;
+  }
+
+  async update(matchId: number, data: UpdateMatchDto, tx: any = db) {
+    const [updatedMatch] = await tx
       .update(matches)
       .set({
         status: data.status,

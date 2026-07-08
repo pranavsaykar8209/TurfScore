@@ -1,7 +1,11 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { MatchState, Delivery, DeliveryType } from '../types';
+import { inningsService } from '../../../services/innings.service';
 
-export function useMatchState(initialState: Partial<MatchState>, matchConfig: { totalOvers: number; teamSize: number }) {
+export function useMatchState(initialState: Partial<MatchState>, matchConfig: { totalOvers: number; teamSize: number }, currentInningsId: number | null) {
+  const currentInningsIdRef = useRef(currentInningsId);
+  currentInningsIdRef.current = currentInningsId;
+
   const [state, setState] = useState<MatchState>({
     totalRuns: 0,
     extraRuns: 0,
@@ -30,6 +34,24 @@ export function useMatchState(initialState: Partial<MatchState>, matchConfig: { 
   const saveHistory = useCallback(() => {
     setHistory((prev) => [...prev, structuredClone(state)]);
   }, [state]);
+
+  const syncStateToBackend = useCallback((newState: MatchState) => {
+    if (currentInningsIdRef.current) {
+      const legalBalls = newState.overs.reduce((acc, over) => acc + over.deliveries.filter(d => !['WIDE', 'NO_BALL'].includes(d.type)).length, 0)
+                       + newState.currentOverDeliveries.filter(d => !['WIDE', 'NO_BALL'].includes(d.type)).length;
+      
+      inningsService.updateInnings(currentInningsIdRef.current, {
+        totalRuns: newState.totalRuns,
+        totalWickets: newState.totalWickets,
+        totalExtras: newState.extraRuns,
+        legalBalls: legalBalls,
+        currentStrikerId: newState.striker ? parseInt(newState.striker.id) : null,
+        currentNonStrikerId: newState.nonStriker ? parseInt(newState.nonStriker.id) : null,
+        currentBowlerId: newState.currentBowler ? parseInt(newState.currentBowler.id) : null,
+        currentOverNumber: newState.currentOver,
+      }).catch(console.error);
+    }
+  }, []);
 
   const addDelivery = useCallback((params: {
     runs: number;
@@ -248,6 +270,9 @@ export function useMatchState(initialState: Partial<MatchState>, matchConfig: { 
         }
       }
 
+      // Sync with backend asynchronously
+      syncStateToBackend(newState);
+
       return newState;
     });
   }, [saveHistory]);
@@ -265,7 +290,7 @@ export function useMatchState(initialState: Partial<MatchState>, matchConfig: { 
         else if (!nonStriker) nonStriker = player;
         else striker = player; 
       }
-      return {
+      const newState = {
         ...prev,
         striker,
         nonStriker,
@@ -273,15 +298,21 @@ export function useMatchState(initialState: Partial<MatchState>, matchConfig: { 
         pendingWicketType: undefined,
         outPlayers: outPlayerId ? [...prev.outPlayers, outPlayerId] : prev.outPlayers,
       };
+      syncStateToBackend(newState);
+      return newState;
     });
   }, [saveHistory]);
 
   const setNewBowler = useCallback((player: import('../../match-setup/types').PlayerSelection) => {
-    setState((prev) => ({
-      ...prev,
-      currentBowler: player,
-      needsNewBowler: false,
-    }));
+    setState((prev) => {
+      const newState = {
+        ...prev,
+        currentBowler: player,
+        needsNewBowler: false,
+      };
+      syncStateToBackend(newState);
+      return newState;
+    });
   }, []);
 
   const addWicket = useCallback(() => {
@@ -291,7 +322,7 @@ export function useMatchState(initialState: Partial<MatchState>, matchConfig: { 
   const endOver = useCallback(() => {
     saveHistory();
     setState((prev) => {
-      return {
+      const newState = {
         ...prev,
         overs: [...prev.overs, { overNumber: prev.currentOver + 1, deliveries: prev.currentOverDeliveries, isComplete: true }],
         currentOver: prev.currentOver + 1,
@@ -300,16 +331,22 @@ export function useMatchState(initialState: Partial<MatchState>, matchConfig: { 
         striker: prev.nonStriker,
         nonStriker: prev.striker,
       };
+      syncStateToBackend(newState);
+      return newState;
     });
   }, [saveHistory]);
 
   const changeStrike = useCallback(() => {
     saveHistory();
-    setState((prev) => ({
-      ...prev,
-      striker: prev.nonStriker,
-      nonStriker: prev.striker,
-    }));
+    setState((prev) => {
+      const newState = {
+        ...prev,
+        striker: prev.nonStriker,
+        nonStriker: prev.striker,
+      };
+      syncStateToBackend(newState);
+      return newState;
+    });
   }, [saveHistory]);
 
   const undo = useCallback(() => {
@@ -318,6 +355,7 @@ export function useMatchState(initialState: Partial<MatchState>, matchConfig: { 
       const newHistory = [...prev];
       const previousState = newHistory.pop()!;
       setState(previousState);
+      syncStateToBackend(previousState);
       return newHistory;
     });
   }, []);

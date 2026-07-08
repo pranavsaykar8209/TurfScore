@@ -70,6 +70,10 @@ CREATE TABLE "innings" (
 	"total_wickets" integer DEFAULT 0 NOT NULL,
 	"total_extras" integer DEFAULT 0 NOT NULL,
 	"legal_balls" integer DEFAULT 0 NOT NULL,
+	"current_striker_id" integer,
+	"current_non_striker_id" integer,
+	"current_bowler_id" integer,
+	"current_over_number" integer DEFAULT 0 NOT NULL,
 	CONSTRAINT "innings_match_id_inning_number_unq" UNIQUE("match_id","inning_number")
 );
 --> statement-breakpoint
@@ -107,6 +111,9 @@ ALTER TABLE "matches" ADD CONSTRAINT "matches_winner_team_id_teams_team_id_fk" F
 ALTER TABLE "innings" ADD CONSTRAINT "innings_match_id_matches_match_id_fk" FOREIGN KEY ("match_id") REFERENCES "public"."matches"("match_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "innings" ADD CONSTRAINT "innings_batting_team_id_teams_team_id_fk" FOREIGN KEY ("batting_team_id") REFERENCES "public"."teams"("team_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "innings" ADD CONSTRAINT "innings_bowling_team_id_teams_team_id_fk" FOREIGN KEY ("bowling_team_id") REFERENCES "public"."teams"("team_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "innings" ADD CONSTRAINT "innings_current_striker_id_players_player_id_fk" FOREIGN KEY ("current_striker_id") REFERENCES "public"."players"("player_id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "innings" ADD CONSTRAINT "innings_current_non_striker_id_players_player_id_fk" FOREIGN KEY ("current_non_striker_id") REFERENCES "public"."players"("player_id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "innings" ADD CONSTRAINT "innings_current_bowler_id_players_player_id_fk" FOREIGN KEY ("current_bowler_id") REFERENCES "public"."players"("player_id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "player_stats" ADD CONSTRAINT "player_stats_player_id_players_player_id_fk" FOREIGN KEY ("player_id") REFERENCES "public"."players"("player_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "player_stats" ADD CONSTRAINT "player_stats_match_id_matches_match_id_fk" FOREIGN KEY ("match_id") REFERENCES "public"."matches"("match_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "player_stats" ADD CONSTRAINT "player_stats_inning_id_innings_inning_id_fk" FOREIGN KEY ("inning_id") REFERENCES "public"."innings"("inning_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint

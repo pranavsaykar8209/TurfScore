@@ -1,6 +1,6 @@
 {
-  "id": "b07f7fcf-9f37-4db6-a731-92ecad5f1a48",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "6d03c9c4-25cf-4f15-8bdd-cb0dde70a596",
+  "prevId": "b07f7fcf-9f37-4db6-a731-92ecad5f1a48",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -753,6 +753,31 @@
           "primaryKey": false,
           "notNull": true,
           "default": 0
+        },
+        "current_striker_id": {
+          "name": "current_striker_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "current_non_striker_id": {
+          "name": "current_non_striker_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "current_bowler_id": {
+          "name": "current_bowler_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "current_over_number": {
+          "name": "current_over_number",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
         }
       },
       "indexes": {
@@ -840,6 +865,45 @@
             "team_id"
           ],
           "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "innings_current_striker_id_players_player_id_fk": {
+          "name": "innings_current_striker_id_players_player_id_fk",
+          "tableFrom": "innings",
+          "tableTo": "players",
+          "columnsFrom": [
+            "current_striker_id"
+          ],
+          "columnsTo": [
+            "player_id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "innings_current_non_striker_id_players_player_id_fk": {
+          "name": "innings_current_non_striker_id_players_player_id_fk",
+          "tableFrom": "innings",
+          "tableTo": "players",
+          "columnsFrom": [
+            "current_non_striker_id"
+          ],
+          "columnsTo": [
+            "player_id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "innings_current_bowler_id_players_player_id_fk": {
+          "name": "innings_current_bowler_id_players_player_id_fk",
+          "tableFrom": "innings",
+          "tableTo": "players",
+          "columnsFrom": [
+            "current_bowler_id"
+          ],
+          "columnsTo": [
+            "player_id"
+          ],
+          "onDelete": "set null",
           "onUpdate": "no action"
         }
       },
