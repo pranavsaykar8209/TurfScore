@@ -7,6 +7,7 @@ import {
 } from '../controllers/session.controller';
 import { createTeam, getTeams } from '../controllers/team.controller';
 import { createPlayer, getPlayers, syncPlayers } from '../controllers/player.controller';
+import { createMatch, getMatches } from '../controllers/match.controller';
 
 const router = Router();
 
@@ -21,5 +22,8 @@ router.get('/:sessionCode/teams', getTeams);
 router.post('/:sessionCode/players', createPlayer);
 router.get('/:sessionCode/players', getPlayers);
 router.post('/:sessionCode/players/sync', syncPlayers);
+
+router.post('/:sessionCode/matches', createMatch);
+router.get('/:sessionCode/matches', getMatches);
 
 export default router;

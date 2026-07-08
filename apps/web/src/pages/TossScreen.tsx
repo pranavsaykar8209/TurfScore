@@ -42,7 +42,8 @@ export default function TossScreen() {
     if (!isComplete) return;
     navigate('/match-setup', { 
       state: { 
-        sessionData, 
+        sessionData,
+        sessionCode: location.state?.sessionCode,
         tossData: { result: tossResult, winner: tossWinner, decision, overs }
       } 
     });

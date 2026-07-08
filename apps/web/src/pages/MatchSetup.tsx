@@ -1,11 +1,14 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, Loader2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { Button } from '@/components/ui';
 import { Navbar } from '../components/shared';
 import homeContent from '../data/home.json';
 import { SearchableSelect, LivePreviewCard } from '../features/match-setup/components';
 import { type PlayerSelection } from '../features/match-setup/types';
+import { matchService } from '../services/match.service';
+import { teamService } from '../services/team.service';
 
 // Mock data fallback
 const MOCK_DATA = {
@@ -36,7 +39,9 @@ export default function MatchSetup() {
   const navigate = useNavigate();
   const location = useLocation();
   
-  const { sessionData, tossData } = location.state || MOCK_DATA;
+  const { sessionData, tossData, sessionCode } = location.state || MOCK_DATA;
+  
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Determine Batting and Bowling Teams based on Toss
   const isTeamABatting = 
@@ -60,15 +65,49 @@ export default function MatchSetup() {
 
   const isComplete = striker && nonStriker && bowler;
 
-  const handleStartMatch = () => {
+  const handleStartMatch = async () => {
     if (!isComplete) return;
-    navigate('/live-scoring', {
-      state: {
-        sessionData,
-        tossData,
-        matchSetup: { striker, nonStriker, bowler, overs: tossData.overs }
+    
+    setIsSubmitting(true);
+    try {
+      let matchId = null;
+      if (sessionCode) {
+        const rawSessionCode = sessionCode.replace(/\s+/g, '');
+        const teams = await teamService.getTeams(rawSessionCode);
+        const teamARecord = teams.find((t: any) => t.teamName === sessionData.teamA);
+        const teamBRecord = teams.find((t: any) => t.teamName === sessionData.teamB);
+        
+        if (!teamARecord || !teamBRecord) throw new Error('Teams not found');
+        
+        const tossWinnerTeamId = tossData.winner === 'A' ? teamARecord.teamId : teamBRecord.teamId;
+        
+        const match = await matchService.createMatch(rawSessionCode, {
+          teamAId: teamARecord.teamId,
+          teamBId: teamBRecord.teamId,
+          oversPerInnings: tossData.overs,
+          tossWinnerTeamId,
+          tossDecision: tossData.decision.toLowerCase() as 'bat' | 'bowl',
+        });
+        matchId = match.matchId;
       }
-    });
+      
+      toast.success('Match started successfully!');
+      
+      navigate('/live-scoring', {
+        state: {
+          sessionData,
+          sessionCode: sessionCode.replace(/\s+/g, ''),
+          tossData,
+          matchSetup: { striker, nonStriker, bowler, overs: tossData.overs },
+          matchId,
+        }
+      });
+    } catch (error) {
+      console.error('Failed to create match:', error);
+      toast.error('Failed to start match.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -193,9 +232,16 @@ export default function MatchSetup() {
               className="w-full shadow-lg"
               size="lg"
               onClick={handleStartMatch}
-              disabled={!isComplete}
+              disabled={!isComplete || isSubmitting}
             >
-              🏏 Start Match
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  Starting Match...
+                </>
+              ) : (
+                <>🏏 Start Match</>
+              )}
             </Button>
           </div>
 
