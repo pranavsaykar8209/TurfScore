@@ -1,19 +1,19 @@
-Implement Feature 6: Player Stats (Backend + Frontend Integration)
+Implement Feature: Ball Recording (Backend + Frontend Integration)
 
 Context:
 - Read `docs/architecture/DatabaseStructure.md`
 - Read `docs/api/product-spec.md`
-- Read `docs/api/player-stats.md`
-- Read `apps/api/src/db/schema/player_stats.ts`
+- Read `docs/api/ball-recording.md`
+- Read `apps/api/src/db/schema/balls.ts`
 - The database schema and Drizzle setup are already complete.
 - Do not redesign the database or architecture.
 
 Scope
 
 Backend:
-- Implement only the Player Stats module.
+- Implement only the Ball Recording module.
 - Create routes, controller, service, repository, validation, and types.
-- Implement only the APIs defined in product-spec.md and player-stats.md.
+- Implement only the APIs defined in product-spec.md and ball-recording.md.
 - Use Drizzle ORM.
 - Use transactions where appropriate.
 - Add proper validation and error handling.
@@ -33,10 +33,10 @@ Rules:
 - Business logic belongs in services.
 - Database logic belongs in repositories.
 - Do not modify the database schema.
-- Do not implement Live Scoring or any other feature.
+- Do not implement any other feature outside of Ball Recording.
 - Do not implement frontend for features that are not yet available in the UI.
 - Do not add placeholder pages or temporary UI.
-- Stop after the Player Stats feature is complete.
+- Stop after the Ball Recording feature is complete.
 
 Deliverables:
 1. Backend implementation.

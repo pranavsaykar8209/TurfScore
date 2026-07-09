@@ -45,10 +45,11 @@ export default function LiveScoringBoard({ sessionData, tossData, matchSetup, ma
     currentBowler: matchSetup?.bowler || null,
     batterStats: initialInningsData?.batterStats || {},
     bowlerStats: initialInningsData?.bowlerStats || {},
+    currentOverDeliveries: initialInningsData?.currentOverDeliveries || [],
   }, {
     totalOvers: matchSetup?.overs || 20,
     teamSize: (sessionData.players?.length || 2) / 2
-  }, currentInningsId);
+  }, currentInningsId, matchId);
 
   useEffect(() => {
     if (matchId && !initialInningsData) {

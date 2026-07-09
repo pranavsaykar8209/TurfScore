@@ -20,6 +20,18 @@ export interface UpdateMatchData {
   completedAt?: string | Date;
 }
 
+export interface RecordBallData {
+  strikerId: number;
+  nonStrikerId: number;
+  bowlerId: number;
+  runsOffBat: number;
+  extraType?: 'wide' | 'no_ball' | 'bye' | 'leg_bye' | null;
+  extraRuns: number;
+  isLegalBall: boolean;
+  isWicket: boolean;
+  dismissedPlayerId?: number | null;
+}
+
 export const matchService = {
   createMatch: async (sessionCode: string, data: CreateMatchData) => {
     const response = await api.post(`/sessions/${sessionCode}/matches`, data);
@@ -48,6 +60,16 @@ export const matchService = {
 
   deleteMatch: async (matchId: number) => {
     const response = await api.delete(`/matches/${matchId}`);
+    return response.data;
+  },
+
+  recordBall: async (matchId: number, data: RecordBallData) => {
+    const response = await api.post(`/matches/${matchId}/ball`, data);
+    return response.data;
+  },
+
+  undoLastBall: async (matchId: number) => {
+    const response = await api.delete(`/matches/${matchId}/ball/last`);
     return response.data;
   },
 };

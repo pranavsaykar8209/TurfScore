@@ -1,8 +1,11 @@
 import { useState, useCallback, useRef } from 'react';
 import { MatchState, Delivery, DeliveryType } from '../types';
 import { inningsService } from '../../../services/innings.service';
+import { matchService } from '../../../services/match.service';
 
-export function useMatchState(initialState: Partial<MatchState>, matchConfig: { totalOvers: number; teamSize: number }, currentInningsId: number | null) {
+export function useMatchState(initialState: Partial<MatchState>, matchConfig: { totalOvers: number; teamSize: number }, currentInningsId: number | null, matchId: number | null = null) {
+  const matchIdRef = useRef(matchId);
+  matchIdRef.current = matchId;
   const currentInningsIdRef = useRef(currentInningsId);
   currentInningsIdRef.current = currentInningsId;
 
@@ -61,6 +64,8 @@ export function useMatchState(initialState: Partial<MatchState>, matchConfig: { 
 
       const playerStats = Array.from(playerStatsMap.values());
 
+      // Keep existing sync for compatibility if needed, or we can just rely on the new API for deliveries.
+      // But we will leave it as is to not break existing optimistic updates / innings sync.
       inningsService.updateInnings(currentInningsIdRef.current, {
         totalRuns: newState.totalRuns,
         totalWickets: newState.totalWickets,
@@ -75,6 +80,46 @@ export function useMatchState(initialState: Partial<MatchState>, matchConfig: { 
     }
   }, []);
 
+  const syncDeliveryToBackend = useCallback((params: any, prev: MatchState) => {
+    if (matchIdRef.current && prev.striker && prev.nonStriker && prev.currentBowler) {
+      let isLegalBall = true;
+      let extraType = null;
+      let extraRuns = 0;
+      let runsOffBat = 0;
+
+      if (params.type === 'WIDE') {
+        extraType = 'wide';
+        extraRuns = 1 + params.runs;
+        isLegalBall = false;
+      } else if (params.type === 'NO_BALL') {
+        extraType = 'no_ball';
+        extraRuns = 1;
+        runsOffBat = params.runs;
+        isLegalBall = false;
+      } else if (params.type === 'BYE') {
+        extraType = 'bye';
+        extraRuns = params.runs;
+      } else if (params.type === 'LEG_BYE') {
+        extraType = 'leg_bye';
+        extraRuns = params.runs;
+      } else {
+        runsOffBat = params.runs;
+      }
+
+      matchService.recordBall(matchIdRef.current, {
+        strikerId: parseInt(prev.striker.id),
+        nonStrikerId: parseInt(prev.nonStriker.id),
+        bowlerId: parseInt(prev.currentBowler.id),
+        runsOffBat,
+        extraType: extraType as any,
+        extraRuns,
+        isLegalBall,
+        isWicket: params.isWicket || params.type === 'WICKET',
+        dismissedPlayerId: (params.isWicket || params.type === 'WICKET') ? parseInt(prev.striker.id) : null, // Simplified
+      }).catch(console.error);
+    }
+  }, []);
+
   const addDelivery = useCallback((params: {
     runs: number;
     type?: DeliveryType;
@@ -84,9 +129,9 @@ export function useMatchState(initialState: Partial<MatchState>, matchConfig: { 
   }) => {
     saveHistory();
 
-    setState((prev) => {
-      const { runs, type = 'NORMAL', isBoundary = false, isWicket = false, wicketType } = params;
-      const actualIsWicket = isWicket || type === 'WICKET';
+    const prev = state;
+    const { runs, type = 'NORMAL', isBoundary = false, isWicket = false, wicketType } = params;
+    const actualIsWicket = isWicket || type === 'WICKET';
       
       let {
         totalRuns,
@@ -159,6 +204,7 @@ export function useMatchState(initialState: Partial<MatchState>, matchConfig: { 
         widesToAdd = 1 + runs;
         ballsToAddBowler = 0;
         ballsToAddOver = 0;
+        if (runs % 2 !== 0) changeStrike = true;
       } else if (type === 'NO_BALL') {
         runsToAddTeam = 1 + runs;
         runsToAddExtra = 1;
@@ -168,6 +214,7 @@ export function useMatchState(initialState: Partial<MatchState>, matchConfig: { 
         noBallsToAdd = 1;
         ballsToAddBowler = 0;
         ballsToAddOver = 0;
+        if (runs % 2 !== 0) changeStrike = true;
         if (isBoundary && runs === 4) foursToAdd = 1;
         if (isBoundary && runs === 6) sixesToAdd = 1;
       } else if (type === 'BYE' || type === 'LEG_BYE') {
@@ -307,16 +354,17 @@ export function useMatchState(initialState: Partial<MatchState>, matchConfig: { 
         }
       }
 
-      // Sync with backend asynchronously
-      syncStateToBackend(newState);
+    // Sync with backend asynchronously
+    // We only call syncDeliveryToBackend because the backend's recordBall API 
+    // automatically handles updating player stats and innings totals.
+    syncDeliveryToBackend(params, prev);
 
-      return newState;
-    });
-  }, [saveHistory]);
+    setState(newState);
+  }, [saveHistory, state, syncStateToBackend, syncDeliveryToBackend]);
 
   const setNewBatsman = useCallback((player: import('../../match-setup/types').PlayerSelection, outPlayerId?: string) => {
-    setState((prev) => {
-      let { striker, nonStriker } = prev;
+    const prev = state;
+    let { striker, nonStriker } = prev;
       if (striker?.id === outPlayerId) {
         striker = player;
       } else if (nonStriker?.id === outPlayerId) {
@@ -335,22 +383,20 @@ export function useMatchState(initialState: Partial<MatchState>, matchConfig: { 
         pendingWicketType: undefined,
         outPlayers: outPlayerId ? [...prev.outPlayers, outPlayerId] : prev.outPlayers,
       };
-      syncStateToBackend(newState);
-      return newState;
-    });
-  }, [saveHistory]);
+    syncStateToBackend(newState);
+    setState(newState);
+  }, [state, syncStateToBackend]);
 
   const setNewBowler = useCallback((player: import('../../match-setup/types').PlayerSelection) => {
-    setState((prev) => {
-      const newState = {
+    const prev = state;
+    const newState = {
         ...prev,
         currentBowler: player,
         needsNewBowler: false,
       };
-      syncStateToBackend(newState);
-      return newState;
-    });
-  }, []);
+    syncStateToBackend(newState);
+    setState(newState);
+  }, [state, syncStateToBackend]);
 
   const addWicket = useCallback(() => {
     addDelivery({ runs: 0, isWicket: true });
@@ -358,8 +404,8 @@ export function useMatchState(initialState: Partial<MatchState>, matchConfig: { 
 
   const endOver = useCallback(() => {
     saveHistory();
-    setState((prev) => {
-      const newState = {
+    const prev = state;
+    const newState = {
         ...prev,
         overs: [...prev.overs, { overNumber: prev.currentOver + 1, deliveries: prev.currentOverDeliveries, isComplete: true }],
         currentOver: prev.currentOver + 1,
@@ -368,34 +414,34 @@ export function useMatchState(initialState: Partial<MatchState>, matchConfig: { 
         striker: prev.nonStriker,
         nonStriker: prev.striker,
       };
-      syncStateToBackend(newState);
-      return newState;
-    });
-  }, [saveHistory]);
+    syncStateToBackend(newState);
+    setState(newState);
+  }, [saveHistory, state, syncStateToBackend]);
 
   const changeStrike = useCallback(() => {
     saveHistory();
-    setState((prev) => {
-      const newState = {
+    const prev = state;
+    const newState = {
         ...prev,
         striker: prev.nonStriker,
         nonStriker: prev.striker,
       };
-      syncStateToBackend(newState);
-      return newState;
-    });
-  }, [saveHistory]);
+    syncStateToBackend(newState);
+    setState(newState);
+  }, [saveHistory, state, syncStateToBackend]);
 
   const undo = useCallback(() => {
-    setHistory((prev) => {
-      if (prev.length === 0) return prev;
-      const newHistory = [...prev];
-      const previousState = newHistory.pop()!;
-      setState(previousState);
-      syncStateToBackend(previousState);
-      return newHistory;
-    });
-  }, []);
+    if (history.length === 0) return;
+    const newHistory = [...history];
+    const previousState = newHistory.pop()!;
+    setHistory(newHistory);
+    setState(previousState);
+    
+    // We do NOT call syncStateToBackend here because undoLastBall handles reverting stats and totals on the backend
+    if (matchIdRef.current) {
+       matchService.undoLastBall(matchIdRef.current).catch(console.error);
+    }
+  }, [history, syncStateToBackend]);
 
   const startSecondInnings = useCallback((setup: { striker: import('../../match-setup/types').PlayerSelection | null; nonStriker: import('../../match-setup/types').PlayerSelection | null; bowler: import('../../match-setup/types').PlayerSelection | null; }) => {
     saveHistory();

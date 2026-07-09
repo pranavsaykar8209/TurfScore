@@ -58,7 +58,10 @@ export class MatchRepository {
           with: { players: true }
         },
         innings: {
-          with: { playerStats: true }
+          with: { 
+            playerStats: true,
+            balls: true
+          }
         }
       }
     });

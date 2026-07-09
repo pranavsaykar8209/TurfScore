@@ -11,7 +11,7 @@ export const Toaster = () => {
       toastOptions={{
         style: {
           borderRadius: '12px',
-          padding: '16px 24px',
+          padding: '10px 16px',
           fontWeight: 500,
           boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1)',
         },

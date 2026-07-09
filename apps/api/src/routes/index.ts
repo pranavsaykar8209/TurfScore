@@ -6,6 +6,7 @@ import playerRoutes from './player.routes';
 import matchRoutes from './match.routes';
 import inningsRoutes from './innings.routes';
 import playerStatsRoutes from './player-stats.routes';
+import ballRoutes from './ball.routes';
 
 const router = Router();
 
@@ -14,6 +15,7 @@ router.use('/api/sessions', sessionRoutes);
 router.use('/api/teams', teamRoutes);
 router.use('/api/players', playerRoutes);
 router.use('/api/matches', matchRoutes);
+router.use('/api/matches', ballRoutes);
 router.use('/api/innings', inningsRoutes);
 router.use('/api/player-stats', playerStatsRoutes);
 

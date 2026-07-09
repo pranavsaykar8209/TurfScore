@@ -1,5 +1,20 @@
 import api from './api';
 
+export interface SyncPlayerStats {
+  playerId: number;
+  teamId?: number;
+  runs?: number;
+  ballsFaced?: number;
+  fours?: number;
+  sixes?: number;
+  ballsBowled?: number;
+  maidens?: number;
+  runsConceded?: number;
+  wickets?: number;
+  wides?: number;
+  noBalls?: number;
+}
+
 export interface UpdateInningsData {
   totalRuns?: number;
   totalWickets?: number;
@@ -9,6 +24,7 @@ export interface UpdateInningsData {
   currentNonStrikerId?: number | null;
   currentBowlerId?: number | null;
   currentOverNumber?: number;
+  playerStats?: SyncPlayerStats[];
 }
 
 export const inningsService = {

@@ -122,6 +122,38 @@ export class MatchService {
       }
     }
 
+    let currentOverDeliveries: any[] = [];
+    if (currentInnings && currentInnings.balls) {
+      const currentOverNumber = currentInnings.currentOverNumber || 0;
+      const overBalls = currentInnings.balls
+        .filter((b: any) => b.overNumber === currentOverNumber)
+        .sort((a: any, b: any) => a.ballNumber - b.ballNumber);
+        
+      currentOverDeliveries = overBalls.map((b: any) => {
+        let type = 'NORMAL';
+        let runs = b.runsOffBat;
+        
+        if (b.extraType === 'wide') { type = 'WIDE'; runs = b.extraRuns - 1; }
+        else if (b.extraType === 'no_ball') { type = 'NO_BALL'; runs = b.runsOffBat; } 
+        else if (b.extraType === 'bye') { type = 'BYE'; runs = b.extraRuns; }
+        else if (b.extraType === 'leg_bye') { type = 'LEG_BYE'; runs = b.extraRuns; }
+        
+        if (b.isWicket && !b.extraType) {
+            type = 'WICKET';
+        }
+
+        return {
+          id: b.ballId.toString(),
+          runs,
+          type,
+          isBoundary: b.runsOffBat === 4 || b.runsOffBat === 6,
+          isWicket: b.isWicket,
+          bowlerId: b.bowlerId?.toString(),
+          batterId: b.strikerId?.toString(),
+        };
+      });
+    }
+
     return {
       sessionData: {
         sessionName: match.session.sessionName,
@@ -142,7 +174,8 @@ export class MatchService {
       currentInningsData: {
         ...currentInnings,
         batterStats,
-        bowlerStats
+        bowlerStats,
+        currentOverDeliveries
       }
     };
   }
