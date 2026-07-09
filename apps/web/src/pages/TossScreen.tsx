@@ -147,7 +147,8 @@ export default function TossScreen() {
                 placeholder="e.g. 20"
                 value={overs}
                 onChange={(e) => setOvers(e.target.value ? parseInt(e.target.value) : '')}
-                className="w-full p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:border-brand-primary/50 outline-none text-slate-900 dark:text-white transition-colors"
+                onWheel={(e) => e.currentTarget.blur()}
+                className="w-full p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:border-brand-primary/50 outline-none text-slate-900 dark:text-white transition-colors [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
               />
             </div>
           </section>

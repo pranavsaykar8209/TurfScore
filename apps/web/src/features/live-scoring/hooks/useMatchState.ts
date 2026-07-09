@@ -40,6 +40,27 @@ export function useMatchState(initialState: Partial<MatchState>, matchConfig: { 
       const legalBalls = newState.overs.reduce((acc, over) => acc + over.deliveries.filter(d => !['WIDE', 'NO_BALL'].includes(d.type)).length, 0)
                        + newState.currentOverDeliveries.filter(d => !['WIDE', 'NO_BALL'].includes(d.type)).length;
       
+      const playerStatsMap = new Map<string, any>();
+
+      // Initialize active players to ensure they are inserted even if stats are 0
+      if (newState.striker) playerStatsMap.set(newState.striker.id, { playerId: parseInt(newState.striker.id) });
+      if (newState.nonStriker) playerStatsMap.set(newState.nonStriker.id, { playerId: parseInt(newState.nonStriker.id) });
+      if (newState.currentBowler) playerStatsMap.set(newState.currentBowler.id, { playerId: parseInt(newState.currentBowler.id) });
+
+      // Add batter stats
+      Object.entries(newState.batterStats).forEach(([id, stats]) => {
+        const existing = playerStatsMap.get(id) || { playerId: parseInt(id) };
+        playerStatsMap.set(id, { ...existing, runs: stats.runs, ballsFaced: stats.balls, fours: stats.fours || 0, sixes: stats.sixes || 0 });
+      });
+
+      // Add bowler stats
+      Object.entries(newState.bowlerStats).forEach(([id, stats]) => {
+        const existing = playerStatsMap.get(id) || { playerId: parseInt(id) };
+        playerStatsMap.set(id, { ...existing, runsConceded: stats.runs, ballsBowled: stats.balls, wickets: stats.wickets, wides: stats.wides || 0, noBalls: stats.noBalls || 0, maidens: stats.maidens || 0 });
+      });
+
+      const playerStats = Array.from(playerStatsMap.values());
+
       inningsService.updateInnings(currentInningsIdRef.current, {
         totalRuns: newState.totalRuns,
         totalWickets: newState.totalWickets,
@@ -49,6 +70,7 @@ export function useMatchState(initialState: Partial<MatchState>, matchConfig: { 
         currentNonStrikerId: newState.nonStriker ? parseInt(newState.nonStriker.id) : null,
         currentBowlerId: newState.currentBowler ? parseInt(newState.currentBowler.id) : null,
         currentOverNumber: newState.currentOver,
+        playerStats,
       }).catch(console.error);
     }
   }, []);
@@ -91,14 +113,14 @@ export function useMatchState(initialState: Partial<MatchState>, matchConfig: { 
       const newBowlerStats = { ...bowlerStats };
 
       if (strikerId && !newBatterStats[strikerId]) {
-        newBatterStats[strikerId] = { runs: 0, balls: 0 };
+        newBatterStats[strikerId] = { runs: 0, balls: 0, fours: 0, sixes: 0 };
       }
       if (bowlerId && !newBowlerStats[bowlerId]) {
-        newBowlerStats[bowlerId] = { runs: 0, balls: 0, wickets: 0 };
+        newBowlerStats[bowlerId] = { runs: 0, balls: 0, wickets: 0, wides: 0, noBalls: 0, maidens: 0 };
       }
 
-      const currentBatterStat = strikerId ? { ...newBatterStats[strikerId] } : { runs: 0, balls: 0 };
-      const currentBowlerStat = bowlerId ? { ...newBowlerStats[bowlerId] } : { runs: 0, balls: 0, wickets: 0 };
+      const currentBatterStat = strikerId ? { ...newBatterStats[strikerId] } : { runs: 0, balls: 0, fours: 0, sixes: 0 };
+      const currentBowlerStat = bowlerId ? { ...newBowlerStats[bowlerId] } : { runs: 0, balls: 0, wickets: 0, wides: 0, noBalls: 0, maidens: 0 };
 
       let runsToAddTeam = 0;
       let runsToAddExtra = 0;
@@ -112,6 +134,10 @@ export function useMatchState(initialState: Partial<MatchState>, matchConfig: { 
       let newNeedsNewBatsman = needsNewBatsman;
       let newNeedsNewBowler = needsNewBowler;
       let newPendingWicketType = pendingWicketType;
+      let widesToAdd = 0;
+      let noBallsToAdd = 0;
+      let foursToAdd = 0;
+      let sixesToAdd = 0;
 
       if (actualIsWicket) {
         wicketsToAdd = 1;
@@ -130,6 +156,7 @@ export function useMatchState(initialState: Partial<MatchState>, matchConfig: { 
         runsToAddBatter = 0;
         ballsToAddBatter = 0;
         runsToAddBowler = 1 + runs;
+        widesToAdd = 1 + runs;
         ballsToAddBowler = 0;
         ballsToAddOver = 0;
       } else if (type === 'NO_BALL') {
@@ -138,8 +165,11 @@ export function useMatchState(initialState: Partial<MatchState>, matchConfig: { 
         runsToAddBatter = runs;
         ballsToAddBatter = 1;
         runsToAddBowler = 1 + runs;
+        noBallsToAdd = 1;
         ballsToAddBowler = 0;
         ballsToAddOver = 0;
+        if (isBoundary && runs === 4) foursToAdd = 1;
+        if (isBoundary && runs === 6) sixesToAdd = 1;
       } else if (type === 'BYE' || type === 'LEG_BYE') {
         runsToAddTeam = runs;
         runsToAddExtra = runs;
@@ -157,12 +187,19 @@ export function useMatchState(initialState: Partial<MatchState>, matchConfig: { 
         ballsToAddBowler = 1;
         ballsToAddOver = 1;
         if (runs % 2 !== 0) changeStrike = true;
+        if (isBoundary && runs === 4) foursToAdd = 1;
+        if (isBoundary && runs === 6) sixesToAdd = 1;
       }
 
       currentBatterStat.runs += runsToAddBatter;
       currentBatterStat.balls += ballsToAddBatter;
+      currentBatterStat.fours = (currentBatterStat.fours || 0) + foursToAdd;
+      currentBatterStat.sixes = (currentBatterStat.sixes || 0) + sixesToAdd;
+      
       currentBowlerStat.runs += runsToAddBowler;
       currentBowlerStat.balls += ballsToAddBowler;
+      currentBowlerStat.wides = (currentBowlerStat.wides || 0) + widesToAdd;
+      currentBowlerStat.noBalls = (currentBowlerStat.noBalls || 0) + noBallsToAdd;
       if (actualIsWicket) currentBowlerStat.wickets += wicketsToAdd;
 
       if (strikerId) newBatterStats[strikerId] = currentBatterStat;

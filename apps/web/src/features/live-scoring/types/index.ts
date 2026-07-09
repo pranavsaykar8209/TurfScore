@@ -22,12 +22,17 @@ export interface Over {
 export interface BatterStats {
   runs: number;
   balls: number;
+  fours?: number;
+  sixes?: number;
 }
 
 export interface BowlerStats {
   runs: number;
   balls: number;
   wickets: number;
+  wides?: number;
+  noBalls?: number;
+  maidens?: number;
 }
 
 export interface MatchState {

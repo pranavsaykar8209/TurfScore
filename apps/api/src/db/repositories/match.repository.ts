@@ -57,7 +57,9 @@ export class MatchRepository {
         teamB: {
           with: { players: true }
         },
-        innings: true
+        innings: {
+          with: { playerStats: true }
+        }
       }
     });
     return match;

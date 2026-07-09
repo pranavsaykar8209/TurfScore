@@ -83,14 +83,43 @@ export class MatchService {
 
     const currentInnings = match.innings.find(i => i.inningNumber === match.currentInning) || null;
 
-    let striker = null;
-    let nonStriker = null;
-    let bowler = null;
+    type PlayerType = { id: string; name: string; team: string };
+    let striker: PlayerType | null = null;
+    let nonStriker: PlayerType | null = null;
+    let bowler: PlayerType | null = null;
+
+    let batterStats: Record<string, any> = {};
+    let bowlerStats: Record<string, any> = {};
 
     if (currentInnings) {
       striker = players.find(p => p.id === currentInnings.currentStrikerId?.toString()) || null;
       nonStriker = players.find(p => p.id === currentInnings.currentNonStrikerId?.toString()) || null;
       bowler = players.find(p => p.id === currentInnings.currentBowlerId?.toString()) || null;
+
+      // Map player stats
+      if (currentInnings.playerStats) {
+        currentInnings.playerStats.forEach((stat: any) => {
+          const pId = stat.playerId.toString();
+          if (stat.ballsFaced > 0 || stat.runs > 0 || (striker?.id === pId) || (nonStriker?.id === pId)) {
+            batterStats[pId] = {
+              runs: stat.runs,
+              balls: stat.ballsFaced,
+              fours: stat.fours,
+              sixes: stat.sixes
+            };
+          }
+          if (stat.ballsBowled > 0 || stat.runsConceded > 0 || stat.wides > 0 || stat.noBalls > 0 || (bowler?.id === pId)) {
+            bowlerStats[pId] = {
+              runs: stat.runsConceded,
+              balls: stat.ballsBowled,
+              wickets: stat.wickets,
+              wides: stat.wides,
+              noBalls: stat.noBalls,
+              maidens: stat.maidens
+            };
+          }
+        });
+      }
     }
 
     return {
@@ -110,7 +139,11 @@ export class MatchService {
         nonStriker,
         bowler,
       },
-      currentInningsData: currentInnings
+      currentInningsData: {
+        ...currentInnings,
+        batterStats,
+        bowlerStats
+      }
     };
   }
 

@@ -5,6 +5,7 @@ import teamRoutes from './team.routes';
 import playerRoutes from './player.routes';
 import matchRoutes from './match.routes';
 import inningsRoutes from './innings.routes';
+import playerStatsRoutes from './player-stats.routes';
 
 const router = Router();
 
@@ -14,5 +15,6 @@ router.use('/api/teams', teamRoutes);
 router.use('/api/players', playerRoutes);
 router.use('/api/matches', matchRoutes);
 router.use('/api/innings', inningsRoutes);
+router.use('/api/player-stats', playerStatsRoutes);
 
 export default router;

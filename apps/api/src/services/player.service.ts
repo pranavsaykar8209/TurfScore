@@ -100,16 +100,18 @@ export const playerService = {
     await playerRepository.deleteBySessionCode(sessionCode);
     
     // Recreate them
-    const newPlayers = [];
-    for (const player of players) {
-      // Validate team belongs to session
-      const team = await teamRepository.findById(player.teamId);
-      if (!team || team.sessionId !== session.sessionId) {
+    if (players.length === 0) return [];
+
+    const sessionTeams = await teamRepository.findBySessionId(session.sessionId);
+    const validTeamIds = new Set(sessionTeams.map((t: any) => t.teamId));
+
+    const playersToInsert = players.map(player => {
+      if (!validTeamIds.has(player.teamId)) {
         throw new Error(`Team ${player.teamId} not found in this session`);
       }
-      const newPlayer = await playerRepository.create(player.teamId, player);
-      newPlayers.push(newPlayer);
-    }
-    return newPlayers;
+      return { teamId: player.teamId, playerName: player.playerName };
+    });
+
+    return await playerRepository.createMany(playersToInsert);
   }
 };

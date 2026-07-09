@@ -18,6 +18,15 @@ export class PlayerRepository {
     return newPlayer;
   }
 
+  async createMany(data: { teamId: number, playerName: string }[]) {
+    if (data.length === 0) return [];
+    
+    return await db
+      .insert(players)
+      .values(data)
+      .returning();
+  }
+
   async findBySessionCode(sessionCode: string, teamId?: number) {
     const query = db
       .select({

@@ -1,9 +1,7 @@
 import { useLocation, useParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { LiveScoringBoard } from './components';
+import { LiveScoringBoard, MatchNotFound, MatchLoadError } from './components';
 import { matchService } from '../../services/match.service';
-import { sessionService } from '../../services/session.service';
-import { inningsService } from '../../services/innings.service';
 import { Loader2 } from 'lucide-react';
 
 export default function LiveScoringPage() {
@@ -30,9 +28,13 @@ export default function LiveScoringPage() {
           initialInningsData: liveData.currentInningsData
         });
 
-      } catch (err) {
+      } catch (err: any) {
         console.error('Failed to load match data', err);
-        setError('Failed to load match data');
+        if (err.response?.status === 404 || err.response?.data?.error === 'Match not found') {
+          setError('NOT_FOUND');
+        } else {
+          setError('Failed to load match data');
+        }
       } finally {
         setIsLoading(false);
       }
@@ -41,15 +43,12 @@ export default function LiveScoringPage() {
     loadData();
   }, [sessionCode, matchId, routeState]);
 
+  if (error === 'NOT_FOUND') {
+    return <MatchNotFound />;
+  }
+
   if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 font-sans">
-        <div className="text-center p-8 bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-red-100 dark:border-red-900/30">
-           <h2 className="text-xl font-bold text-red-500 mb-2">Error</h2>
-           <p className="text-slate-600 dark:text-slate-400">{error}</p>
-        </div>
-      </div>
-    );
+    return <MatchLoadError error={error} />;
   }
 
   if (isLoading || !data) {

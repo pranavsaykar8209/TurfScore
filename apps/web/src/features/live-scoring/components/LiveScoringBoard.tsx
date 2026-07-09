@@ -43,6 +43,8 @@ export default function LiveScoringBoard({ sessionData, tossData, matchSetup, ma
     striker: matchSetup?.striker || null,
     nonStriker: matchSetup?.nonStriker || null,
     currentBowler: matchSetup?.bowler || null,
+    batterStats: initialInningsData?.batterStats || {},
+    bowlerStats: initialInningsData?.bowlerStats || {},
   }, {
     totalOvers: matchSetup?.overs || 20,
     teamSize: (sessionData.players?.length || 2) / 2

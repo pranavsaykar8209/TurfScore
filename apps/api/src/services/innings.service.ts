@@ -1,15 +1,18 @@
 import { db } from '../db/index';
 import { InningsRepository } from '../db/repositories/innings.repository';
 import { MatchRepository } from '../db/repositories/match.repository';
+import { PlayerStatsRepository } from '../db/repositories/player-stats.repository';
 import { UpdateInningsDto } from '../types/innings.types';
 
 export class InningsService {
   private inningsRepo: InningsRepository;
   private matchRepo: MatchRepository;
+  private playerStatsRepo: PlayerStatsRepository;
 
   constructor() {
     this.inningsRepo = new InningsRepository();
     this.matchRepo = new MatchRepository();
+    this.playerStatsRepo = new PlayerStatsRepository();
   }
 
   async startFirstInnings(matchId: number) {
@@ -78,7 +81,40 @@ export class InningsService {
       const innings = await this.inningsRepo.findById(inningId, tx);
       if (!innings) throw new Error('Innings not found');
 
-      return await this.inningsRepo.update(inningId, data, tx);
+      // Separate playerStats from standard innings fields
+      const { playerStats, ...inningsData } = data;
+
+      const updatedInnings = await this.inningsRepo.update(inningId, inningsData, tx);
+
+      // If player stats were provided, sync them within the same transaction
+      if (playerStats && playerStats.length > 0) {
+        const missingTeamIds = playerStats.filter(s => !s.teamId).map(s => s.playerId);
+        let playerTeamMap = new Map<number, number>();
+        
+        if (missingTeamIds.length > 0) {
+          const playersList = await tx.query.players.findMany({
+            where: (players: any, { inArray }: any) => inArray(players.playerId, missingTeamIds),
+            columns: { playerId: true, teamId: true }
+          });
+          playersList.forEach((p: any) => playerTeamMap.set(p.playerId, p.teamId));
+        }
+
+        const bulkData = playerStats.map(stats => {
+          const teamId = stats.teamId || playerTeamMap.get(stats.playerId);
+          return {
+            matchId: innings.matchId,
+            inningId: innings.inningId,
+            teamId,
+            ...stats,
+          };
+        }).filter(s => s.teamId);
+
+        if (bulkData.length > 0) {
+          await this.playerStatsRepo.syncMany(bulkData, tx);
+        }
+      }
+
+      return updatedInnings;
     });
   }
 
