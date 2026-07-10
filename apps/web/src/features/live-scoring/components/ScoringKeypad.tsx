@@ -34,6 +34,9 @@ export default function ScoringKeypad({
       setIsWicket(false);
       setWicketType(null);
     }
+    if (r === 0 && (extraType === 'BYE' || extraType === 'LEG_BYE')) {
+      setExtraType('NORMAL');
+    }
   };
 
   const handleExtra = (type: DeliveryType) => {
@@ -74,8 +77,11 @@ export default function ScoringKeypad({
     return `active:scale-95 transition-all rounded-2xl h-12 md:h-auto md:aspect-square flex items-center justify-center text-xl md:text-3xl font-bold ${isSelected ? 'bg-brand-green text-brand-dark ring-2 md:ring-4 ring-brand-green ring-offset-1 md:ring-offset-2 dark:ring-offset-slate-900' : 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-700'}`;
   };
 
-  const getExtraClass = (type: DeliveryType) => {
+  const getExtraClass = (type: DeliveryType, disabled: boolean = false) => {
     const isSelected = extraType === type;
+    if (disabled) {
+      return `rounded-2xl h-12 md:h-16 flex flex-col items-center justify-center bg-slate-100/50 dark:bg-slate-800/50 text-slate-400 dark:text-slate-600 cursor-not-allowed`;
+    }
     return `active:scale-95 transition-all rounded-2xl h-12 md:h-16 flex flex-col items-center justify-center ${isSelected ? 'bg-brand-green text-brand-dark ring-2 md:ring-4 ring-brand-green ring-offset-1 md:ring-offset-2 dark:ring-offset-slate-900' : 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-700'}`;
   };
 
@@ -172,10 +178,10 @@ export default function ScoringKeypad({
           <button onClick={() => handleExtra('NO_BALL')} className={getExtraClass('NO_BALL')}>
             <span className="font-bold text-inherit">NB</span>
           </button>
-          <button onClick={() => handleExtra('BYE')} className={getExtraClass('BYE')}>
+          <button onClick={() => handleExtra('BYE')} disabled={runs === 0} className={getExtraClass('BYE', runs === 0)}>
             <span className="font-bold text-inherit">BYE</span>
           </button>
-          <button onClick={() => handleExtra('LEG_BYE')} className={getExtraClass('LEG_BYE')}>
+          <button onClick={() => handleExtra('LEG_BYE')} disabled={runs === 0} className={getExtraClass('LEG_BYE', runs === 0)}>
             <span className="font-bold text-inherit">LB</span>
           </button>
         </div>

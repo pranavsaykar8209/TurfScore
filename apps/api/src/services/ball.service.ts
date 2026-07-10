@@ -155,12 +155,16 @@ export class BallService {
       let nextNonStrikerId = data.nonStrikerId;
 
       // Strike Rotation
-      const runsForRotation = extraType === 'wide' || extraType === 'no_ball' ? extraRuns || runsOffBat : runsOffBat;
       let changeStrike = false;
-      if (extraType === 'bye' || extraType === 'leg_bye') {
+      if (extraType === 'wide') {
+         const physicallyRun = extraRuns > 0 ? extraRuns - 1 : 0;
+         if (physicallyRun % 2 !== 0) changeStrike = true;
+      } else if (extraType === 'no_ball') {
+         if (runsOffBat % 2 !== 0) changeStrike = true;
+      } else if (extraType === 'bye' || extraType === 'leg_bye') {
          if (extraRuns % 2 !== 0) changeStrike = true;
       } else {
-         if (runsForRotation % 2 !== 0) changeStrike = true;
+         if (runsOffBat % 2 !== 0) changeStrike = true;
       }
 
       if (changeStrike) {

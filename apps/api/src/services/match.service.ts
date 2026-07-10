@@ -171,11 +171,15 @@ export class MatchService {
         nonStriker,
         bowler,
       },
-      currentInningsData: {
+      currentInningsData: currentInnings ? {
         ...currentInnings,
         batterStats,
         bowlerStats,
         currentOverDeliveries
+      } : null,
+      match: {
+        currentInning: match.currentInning,
+        status: match.status
       }
     };
   }

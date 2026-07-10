@@ -60,18 +60,28 @@ export default function CurrentOverTracker({ matchState }: CurrentOverTrackerPro
 
             if (delivery.isWicket || delivery.type === 'WICKET') {
               bgClass = "bg-red-500 text-white";
-              if (delivery.type === 'WIDE' || delivery.type === 'NO_BALL') {
-                display = `W+${delivery.type === 'WIDE' ? 'WD' : 'NB'}`;
+              if (delivery.type === 'WIDE') {
+                display = `W+WD`;
+              } else if (delivery.type === 'NO_BALL') {
+                display = `W+NB`;
+              } else if (delivery.type === 'BYE') {
+                display = `W+${delivery.runs}B`;
+              } else if (delivery.type === 'LEG_BYE') {
+                display = `W+${delivery.runs}LB`;
               } else {
                 display = 'W';
               }
-              if (delivery.runs > 0) {
+              if (delivery.runs > 0 && delivery.type !== 'BYE' && delivery.type !== 'LEG_BYE') {
                 display += `+${delivery.runs}`;
               }
             } else if (delivery.type === 'WIDE') {
               display = `${delivery.runs > 0 ? delivery.runs + '+' : ''}WD`;
             } else if (delivery.type === 'NO_BALL') {
               display = `${delivery.runs > 0 ? delivery.runs + '+' : ''}NB`;
+            } else if (delivery.type === 'BYE') {
+              display = `${delivery.runs}B`;
+            } else if (delivery.type === 'LEG_BYE') {
+              display = `${delivery.runs}LB`;
             } else if (delivery.isBoundary && delivery.runs === 4) {
               bgClass = "bg-brand-green text-brand-dark";
             } else if (delivery.isBoundary && delivery.runs === 6) {

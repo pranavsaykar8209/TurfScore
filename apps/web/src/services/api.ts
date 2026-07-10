@@ -12,8 +12,8 @@ const api = axios.create({
 
 api.interceptors.response.use(
   (response) => {
-    // Show success toast if the response contains a 'message' field (and it's not a GET request)
-    if (response.config.method !== 'get' && response.data && response.data.message) {
+    // Show success toast if the response contains a 'message' field (and it's not a GET request or a ball recording request)
+    if (response.config.method !== 'get' && response.data && response.data.message && !response.config.url?.endsWith('/ball')) {
       toast.success(response.data.message);
     }
     return response;

@@ -16,7 +16,7 @@ import { Navbar } from '@/components/shared';
 import homeContent from '@/data/home.json';
 import { inningsService } from '../../../services/innings.service';
 
-export default function LiveScoringBoard({ sessionData, tossData, matchSetup, matchId, initialInningsData }: any) {
+export default function LiveScoringBoard({ sessionData, tossData, matchSetup, matchId, initialInningsData, match }: any) {
   const navigate = useNavigate();
   const [currentInningsId, setCurrentInningsId] = useState<number | null>(initialInningsData?.inningId || null);
 
@@ -39,25 +39,34 @@ export default function LiveScoringBoard({ sessionData, tossData, matchSetup, ma
     extraRuns: initialInningsData?.totalExtras || 0,
     currentOver: initialInningsData?.legalBalls ? Math.floor(initialInningsData.legalBalls / 6) : 0,
     currentBall: initialInningsData?.legalBalls ? initialInningsData.legalBalls % 6 : 0,
-    innings: initialInningsData?.inningNumber || 1,
+    innings: initialInningsData?.inningNumber || match?.currentInning || 1,
     striker: matchSetup?.striker || null,
     nonStriker: matchSetup?.nonStriker || null,
     currentBowler: matchSetup?.bowler || null,
     batterStats: initialInningsData?.batterStats || {},
     bowlerStats: initialInningsData?.bowlerStats || {},
     currentOverDeliveries: initialInningsData?.currentOverDeliveries || [],
+    isFreeHit: (initialInningsData?.currentOverDeliveries || []).reduce((acc: boolean, curr: any) => {
+      if (curr.type === 'NO_BALL') return true;
+      if (curr.type !== 'WIDE') return false;
+      return acc;
+    }, false),
   }, {
     totalOvers: matchSetup?.overs || 20,
     teamSize: (sessionData.players?.length || 2) / 2
   }, currentInningsId, matchId);
 
+  const [setupStep, setSetupStep] = useState<'NONE' | 'BATSMEN' | 'BOWLER'>(
+    match?.currentInning === 2 && !initialInningsData ? 'BATSMEN' : 'NONE'
+  );
+
   useEffect(() => {
-    if (matchId && !initialInningsData) {
+    if (matchId && !initialInningsData && match?.currentInning === 1) {
       inningsService.getCurrentInnings(matchId)
         .then(data => setCurrentInningsId(data.inningId))
         .catch(err => console.error('Failed to fetch current innings:', err));
     }
-  }, [matchId, initialInningsData, matchState.innings]);
+  }, [matchId, initialInningsData, matchState.innings, match]);
 
   const currentBattingTeamIsA = matchState.innings === 1 ? isTeamAInitialBatting : !isTeamAInitialBatting;
 
@@ -70,7 +79,13 @@ export default function LiveScoringBoard({ sessionData, tossData, matchSetup, ma
   const battingPlayers = sessionData.players?.filter((p: { team: string }) => p.team === battingTeamId) || [];
   const bowlingPlayers = sessionData.players?.filter((p: { team: string }) => p.team === bowlingTeamId) || [];
 
-  const [setupStep, setSetupStep] = useState<'NONE' | 'BATSMEN' | 'BOWLER'>('NONE');
+  const secondInningsBattingTeamIsA = !isTeamAInitialBatting;
+  const secondInningsBattingTeamId = secondInningsBattingTeamIsA ? 'A' : 'B';
+  const secondInningsBowlingTeamId = secondInningsBattingTeamIsA ? 'B' : 'A';
+  
+  const secondInningsBattingPlayers = sessionData.players?.filter((p: { team: string }) => p.team === secondInningsBattingTeamId) || [];
+  const secondInningsBowlingPlayers = sessionData.players?.filter((p: { team: string }) => p.team === secondInningsBowlingTeamId) || [];
+
   const [secondInningsData, setSecondInningsData] = useState<any>({});
 
   const [showStrikeWarning, setShowStrikeWarning] = useState(false);
@@ -85,9 +100,15 @@ export default function LiveScoringBoard({ sessionData, tossData, matchSetup, ma
 
   const handleStartSecondInnings = async () => {
     if (currentInningsId) {
-      await inningsService.endInnings(currentInningsId).catch(console.error);
+      try {
+        await inningsService.endInnings(currentInningsId);
+        setSetupStep('BATSMEN');
+      } catch (err: any) {
+        console.error('Failed to end innings:', err);
+      }
+    } else {
+      setSetupStep('BATSMEN');
     }
-    setSetupStep('BATSMEN');
   };
 
   const handleSecondInningsBatsmenSelection = (striker: import('../../match-setup/types').PlayerSelection, nonStriker: import('../../match-setup/types').PlayerSelection) => {
@@ -97,23 +118,25 @@ export default function LiveScoringBoard({ sessionData, tossData, matchSetup, ma
 
   const handleSecondInningsBowlerSelection = async (bowler: import('../../match-setup/types').PlayerSelection) => {
     if (matchId) {
-      const innings = await inningsService.startSecondInnings(matchId).catch(console.error);
-      if (innings) {
+      try {
+        const innings = await inningsService.startSecondInnings(matchId);
         await inningsService.updateInnings(innings.inningId, {
           currentStrikerId: secondInningsData.striker ? parseInt(secondInningsData.striker.id) : null,
           currentNonStrikerId: secondInningsData.nonStriker ? parseInt(secondInningsData.nonStriker.id) : null,
           currentBowlerId: bowler ? parseInt(bowler.id) : null,
           currentOverNumber: 0,
-        }).catch(console.error);
+        });
         setCurrentInningsId(innings.inningId);
+        startSecondInnings({
+          ...secondInningsData,
+          bowler
+        });
+        setSetupStep('NONE');
+        setSecondInningsData({});
+      } catch (err: any) {
+        console.error('Failed to start second innings:', err);
       }
     }
-    startSecondInnings({
-      ...secondInningsData,
-      bowler
-    });
-    setSetupStep('NONE');
-    setSecondInningsData({});
   };
 
   const isScoringDisabled = matchState.isInningsComplete || matchState.isMatchComplete;
@@ -189,7 +212,7 @@ export default function LiveScoringBoard({ sessionData, tossData, matchSetup, ma
 
       {setupStep === 'BATSMEN' && (
         <OpeningBatsmenSelectionModal
-          options={bowlingPlayers}
+          options={secondInningsBattingPlayers}
           onSubmit={handleSecondInningsBatsmenSelection}
         />
       )}
@@ -199,7 +222,7 @@ export default function LiveScoringBoard({ sessionData, tossData, matchSetup, ma
           key={setupStep}
           title="Select Opening Bowler"
           type="BOWLER"
-          options={battingPlayers}
+          options={secondInningsBowlingPlayers}
           onSubmit={handleSecondInningsBowlerSelection}
         />
       )}
