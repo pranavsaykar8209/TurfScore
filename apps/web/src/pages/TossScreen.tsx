@@ -10,23 +10,11 @@ import { type TossWinner, type TossDecision } from '../features/match-setup/type
 import { sessionService } from '../services/session.service';
 import { playerService } from '../services/player.service';
 
-// Mock session data for development if accessed directly
-const MOCK_SESSION_DATA = {
-  sessionName: 'Weekend Match',
-  teamA: 'Mumbai Indians',
-  teamB: 'Chennai Super Kings',
-  players: [
-    { id: '1', name: 'Rohit Sharma', team: 'A' },
-    { id: '2', name: 'Suryakumar Yadav', team: 'A' },
-    { id: '3', name: 'MS Dhoni', team: 'B' },
-    { id: '4', name: 'Ravindra Jadeja', team: 'B' }
-  ]
-};
 
 export default function TossScreen() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { sessionCode } = useParams();
+  const { sessionCode } = useParams<{ sessionCode: string }>();
   
   const [sessionData, setSessionData] = useState<any>(location.state?.sessionData || null);
   const [isLoading, setIsLoading] = useState(!location.state?.sessionData);

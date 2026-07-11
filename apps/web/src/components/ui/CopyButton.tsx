@@ -3,12 +3,12 @@ import { Copy, Check } from 'lucide-react';
 import { cn } from '../../utils/cn';
 import { CopyButtonProps } from './types';
 
-export const CopyButton: React.FC<CopyButtonProps> = ({ value, label, className }) => {
+export const CopyButton: React.FC<CopyButtonProps> = ({ value, copyValue, label, className }) => {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(value);
+      await navigator.clipboard.writeText(copyValue ?? value);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {

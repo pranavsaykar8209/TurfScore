@@ -72,5 +72,6 @@ export interface MatchState {
   needsNewBatsman?: boolean;
   needsNewBowler?: boolean;
   pendingWicketType?: string;
+  pendingDelivery?: any;
   outPlayers: string[];
 }

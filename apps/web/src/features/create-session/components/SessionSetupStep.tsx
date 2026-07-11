@@ -40,8 +40,9 @@ export const SessionSetupStep: React.FC<SessionSetupStepProps> = ({ onNext, sess
             error={errors.sessionName?.message as string}
           />
           <CopyButton 
+            value={sessionCode}
+            copyValue={sessionCode.replace(/\s/g, '')}
             label="Session Code" 
-            value={sessionCode} 
           />
         </div>
 

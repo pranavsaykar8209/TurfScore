@@ -24,6 +24,30 @@ export default function LiveScoringBoard({ sessionData, tossData, matchSetup, ma
     (tossData.winner === 'A' && tossData.decision === 'BAT') ||
     (tossData.winner === 'B' && tossData.decision === 'BOWL');
 
+  const pastLegalBalls = (initialInningsData?.overs || [])
+    .filter((o: any) => o.overNumber < (initialInningsData?.currentOverNumber || 0))
+    .reduce((acc: number, over: any) => 
+      acc + (over.deliveries?.filter((d: any) => !['WIDE', 'NO_BALL'].includes(d.type)).length || 0)
+    , 0);
+
+  const currentLegalBalls = (initialInningsData?.currentOverDeliveries || []).filter(
+    (d: any) => !['WIDE', 'NO_BALL'].includes(d.type)
+  ).length;
+
+  const totalLegalBalls = pastLegalBalls + currentLegalBalls;
+
+  const completedOvers = (initialInningsData?.overs || []).filter((o: any) => o.overNumber < (initialInningsData?.currentOverNumber || 0));
+  let initialCurrentOverDeliveries = initialInningsData?.currentOverDeliveries || [];
+
+  if (currentLegalBalls >= 6) {
+    completedOvers.push({
+      overNumber: initialInningsData?.currentOverNumber || 0,
+      deliveries: initialCurrentOverDeliveries,
+      isComplete: true
+    });
+    initialCurrentOverDeliveries = [];
+  }
+
   const {
     state: matchState,
     addDelivery,
@@ -37,20 +61,22 @@ export default function LiveScoringBoard({ sessionData, tossData, matchSetup, ma
     totalRuns: initialInningsData?.totalRuns || 0,
     totalWickets: initialInningsData?.totalWickets || 0,
     extraRuns: initialInningsData?.totalExtras || 0,
-    currentOver: initialInningsData?.legalBalls ? Math.floor(initialInningsData.legalBalls / 6) : 0,
-    currentBall: initialInningsData?.legalBalls ? initialInningsData.legalBalls % 6 : 0,
+    currentOver: Math.floor(totalLegalBalls / 6),
+    currentBall: totalLegalBalls % 6,
+    overs: completedOvers,
     innings: initialInningsData?.inningNumber || match?.currentInning || 1,
     striker: matchSetup?.striker || null,
     nonStriker: matchSetup?.nonStriker || null,
     currentBowler: matchSetup?.bowler || null,
     batterStats: initialInningsData?.batterStats || {},
     bowlerStats: initialInningsData?.bowlerStats || {},
-    currentOverDeliveries: initialInningsData?.currentOverDeliveries || [],
+    currentOverDeliveries: initialCurrentOverDeliveries,
     isFreeHit: (initialInningsData?.currentOverDeliveries || []).reduce((acc: boolean, curr: any) => {
       if (curr.type === 'NO_BALL') return true;
       if (curr.type !== 'WIDE') return false;
       return acc;
     }, false),
+    outPlayers: initialInningsData?.dismissals || [],
   }, {
     totalOvers: matchSetup?.overs || 20,
     teamSize: (sessionData.players?.length || 2) / 2

@@ -32,7 +32,7 @@ export default function NotFound() {
           
           <div className="flex flex-col sm:flex-row gap-4 w-full">
             <Button 
-              variant="outline" 
+              variant="secondary" 
               className="flex-1 rounded-xl h-12"
               onClick={() => navigate(-1)}
             >

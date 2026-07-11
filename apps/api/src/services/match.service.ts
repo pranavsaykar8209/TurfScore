@@ -122,14 +122,8 @@ export class MatchService {
       }
     }
 
-    let currentOverDeliveries: any[] = [];
-    if (currentInnings && currentInnings.balls) {
-      const currentOverNumber = currentInnings.currentOverNumber || 0;
-      const overBalls = currentInnings.balls
-        .filter((b: any) => b.overNumber === currentOverNumber)
-        .sort((a: any, b: any) => a.ballNumber - b.ballNumber);
-        
-      currentOverDeliveries = overBalls.map((b: any) => {
+    const mapBallsToDeliveries = (balls: any[]) => {
+      return balls.sort((a: any, b: any) => a.ballNumber - b.ballNumber).map((b: any) => {
         let type = 'NORMAL';
         let runs = b.runsOffBat;
         
@@ -150,14 +144,75 @@ export class MatchService {
           isWicket: b.isWicket,
           bowlerId: b.bowlerId?.toString(),
           batterId: b.strikerId?.toString(),
+          dismissedPlayerId: b.dismissedPlayerId?.toString(),
         };
       });
+    };
+
+    let currentOverDeliveries: any[] = [];
+    if (currentInnings && currentInnings.balls) {
+      const currentOverNumber = currentInnings.currentOverNumber || 0;
+      const overBalls = currentInnings.balls.filter((b: any) => b.overNumber === currentOverNumber);
+      currentOverDeliveries = mapBallsToDeliveries(overBalls);
     }
+
+    const allInningsData = match.innings.map(inning => {
+      const balls = inning.balls || [];
+      const oversMap = new Map<number, any[]>();
+      let fow: any[] = [];
+      let dismissals: string[] = [];
+      let totalRuns = 0;
+      let totalWickets = 0;
+
+      balls.sort((a: any, b: any) => {
+        if (a.overNumber !== b.overNumber) return a.overNumber - b.overNumber;
+        return a.ballNumber - b.ballNumber;
+      }).forEach((b: any) => {
+        // Group into overs
+        if (!oversMap.has(b.overNumber)) {
+          oversMap.set(b.overNumber, []);
+        }
+        oversMap.get(b.overNumber)?.push(b);
+
+        // Track score for FOW
+        totalRuns += b.runsOffBat + b.extraRuns;
+        
+        if (b.isWicket && b.dismissedPlayerId) {
+          totalWickets++;
+          const dismissedPlayer = players.find(p => p.id === b.dismissedPlayerId.toString());
+          dismissals.push(b.dismissedPlayerId.toString());
+          fow.push({
+            score: totalRuns,
+            wicketNumber: totalWickets,
+            over: b.overNumber,
+            ball: b.ballNumber,
+            batterName: dismissedPlayer?.name || 'Unknown',
+            batterId: b.dismissedPlayerId.toString()
+          });
+        }
+      });
+
+      const overs = Array.from(oversMap.entries()).map(([overNumber, overBalls]) => ({
+        overNumber,
+        deliveries: mapBallsToDeliveries(overBalls)
+      }));
+
+      return {
+        inningNumber: inning.inningNumber,
+        battingTeamId: inning.battingTeamId,
+        bowlingTeamId: inning.bowlingTeamId,
+        overs,
+        fow,
+        dismissals
+      };
+    });
 
     return {
       sessionData: {
         sessionName: match.session.sessionName,
+        teamAId: match.teamAId,
         teamA: match.teamA.teamName,
+        teamBId: match.teamBId,
         teamB: match.teamB.teamName,
         players
       },
@@ -177,6 +232,7 @@ export class MatchService {
         bowlerStats,
         currentOverDeliveries
       } : null,
+      allInningsData,
       match: {
         currentInning: match.currentInning,
         status: match.status

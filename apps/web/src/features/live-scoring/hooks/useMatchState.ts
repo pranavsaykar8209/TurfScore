@@ -29,6 +29,7 @@ export function useMatchState(initialState: Partial<MatchState>, matchConfig: { 
     needsNewBatsman: false,
     needsNewBowler: false,
     pendingWicketType: undefined,
+    pendingDelivery: undefined,
     outPlayers: initialState.outPlayers || [],
   });
 
@@ -184,18 +185,7 @@ export function useMatchState(initialState: Partial<MatchState>, matchConfig: { 
       let foursToAdd = 0;
       let sixesToAdd = 0;
 
-      if (actualIsWicket) {
-        wicketsToAdd = 1;
-        ballsToAddBatter = 1;
-        ballsToAddBowler = 1;
-        ballsToAddOver = 1;
-        runsToAddTeam = runs;
-        runsToAddBatter = runs;
-        runsToAddBowler = runs;
-        if (runs % 2 !== 0) changeStrike = true; // In case batters crossed on a run-out
-        newNeedsNewBatsman = true;
-        newPendingWicketType = wicketType || 'BOWLED';
-      } else if (type === 'WIDE') {
+      if (type === 'WIDE') {
         runsToAddTeam = 1 + runs;
         runsToAddExtra = 1 + runs;
         runsToAddBatter = 0;
@@ -204,7 +194,6 @@ export function useMatchState(initialState: Partial<MatchState>, matchConfig: { 
         widesToAdd = 1 + runs;
         ballsToAddBowler = 0;
         ballsToAddOver = 0;
-        if (runs % 2 !== 0) changeStrike = true;
       } else if (type === 'NO_BALL') {
         runsToAddTeam = 1 + runs;
         runsToAddExtra = 1;
@@ -214,7 +203,6 @@ export function useMatchState(initialState: Partial<MatchState>, matchConfig: { 
         noBallsToAdd = 1;
         ballsToAddBowler = 0;
         ballsToAddOver = 0;
-        if (runs % 2 !== 0) changeStrike = true;
         if (isBoundary && runs === 4) foursToAdd = 1;
         if (isBoundary && runs === 6) sixesToAdd = 1;
       } else if (type === 'BYE' || type === 'LEG_BYE') {
@@ -225,17 +213,26 @@ export function useMatchState(initialState: Partial<MatchState>, matchConfig: { 
         runsToAddBowler = 0;
         ballsToAddBowler = 1;
         ballsToAddOver = 1;
-        if (runs % 2 !== 0) changeStrike = true;
       } else {
+        // NORMAL
         runsToAddTeam = runs;
         runsToAddBatter = runs;
         ballsToAddBatter = 1;
         runsToAddBowler = runs;
         ballsToAddBowler = 1;
         ballsToAddOver = 1;
-        if (runs % 2 !== 0) changeStrike = true;
         if (isBoundary && runs === 4) foursToAdd = 1;
         if (isBoundary && runs === 6) sixesToAdd = 1;
+      }
+
+      // Strike change based on runs completed
+      if (runs % 2 !== 0) changeStrike = true;
+
+      // Process Wicket independently of delivery type
+      if (actualIsWicket) {
+        wicketsToAdd = 1;
+        newNeedsNewBatsman = true;
+        newPendingWicketType = wicketType || 'BOWLED';
       }
 
       currentBatterStat.runs += runsToAddBatter;
@@ -247,7 +244,11 @@ export function useMatchState(initialState: Partial<MatchState>, matchConfig: { 
       currentBowlerStat.balls += ballsToAddBowler;
       currentBowlerStat.wides = (currentBowlerStat.wides || 0) + widesToAdd;
       currentBowlerStat.noBalls = (currentBowlerStat.noBalls || 0) + noBallsToAdd;
-      if (actualIsWicket) currentBowlerStat.wickets += wicketsToAdd;
+      
+      // Only credit the bowler with the wicket if it is not a run out
+      if (actualIsWicket && newPendingWicketType !== 'RUN_OUT') {
+        currentBowlerStat.wickets += wicketsToAdd;
+      }
 
       if (strikerId) newBatterStats[strikerId] = currentBatterStat;
       if (bowlerId) newBowlerStats[bowlerId] = currentBowlerStat;
@@ -357,7 +358,11 @@ export function useMatchState(initialState: Partial<MatchState>, matchConfig: { 
     // Sync with backend asynchronously
     // We only call syncDeliveryToBackend because the backend's recordBall API 
     // automatically handles updating player stats and innings totals.
-    syncDeliveryToBackend(params, prev);
+    if (actualIsWicket && wicketType === 'RUN_OUT') {
+      newState.pendingDelivery = params;
+    } else {
+      syncDeliveryToBackend(params, prev);
+    }
 
     setState(newState);
   }, [saveHistory, state, syncStateToBackend, syncDeliveryToBackend]);
@@ -381,11 +386,17 @@ export function useMatchState(initialState: Partial<MatchState>, matchConfig: { 
         nonStriker,
         needsNewBatsman: false,
         pendingWicketType: undefined,
+        pendingDelivery: undefined,
         outPlayers: outPlayerId ? [...prev.outPlayers, outPlayerId] : prev.outPlayers,
       };
+
+    if (prev.pendingDelivery) {
+      syncDeliveryToBackend({ ...prev.pendingDelivery, dismissedPlayerId: outPlayerId }, prev);
+    }
+
     syncStateToBackend(newState);
     setState(newState);
-  }, [state, syncStateToBackend]);
+  }, [state, syncStateToBackend, syncDeliveryToBackend]);
 
   const setNewBowler = useCallback((player: import('../../match-setup/types').PlayerSelection) => {
     const prev = state;

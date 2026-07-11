@@ -13,7 +13,7 @@ export const useMatchConsole = () => {
     e.preventDefault();
     if (joinCode.length === 6) {
       console.log('Join session with code:', joinCode);
-      // Implement navigation to /session/:code
+      navigate(`/session/${joinCode}/matches`);
     }
   };
 
